@@ -71,7 +71,7 @@ public class Webcrawler
                 parsesuccess = false;
             }
 
-            if(fullHTML == "") parsesuccess = false;
+            if(fullHTML.equals("")) parsesuccess = false;
 
             if(parsesuccess)
             {

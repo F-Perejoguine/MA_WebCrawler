@@ -8,10 +8,7 @@ public class Queue {
     {
         qLinks = new ArrayList();
 
-        for(int i = 0; i < seeds.length; i++)
-        {
-            qLinks.add(seeds[i]);
-        }
+        Collections.addAll(qLinks, seeds);
     }
 
     public String get(){
@@ -40,9 +37,9 @@ public class Queue {
     public boolean checkDoubles(String checkURL)
     {
         boolean isDouble = false;
-        for(int i = 0; i < qLinks.size(); i++)
+        for (String link : qLinks)
         {
-            if(checkURL == qLinks.get(i)) isDouble = true;
+            if(checkURL.equals(link)) isDouble = true;
         }
         return isDouble;
     }

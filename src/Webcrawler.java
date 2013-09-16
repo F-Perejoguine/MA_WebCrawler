@@ -1,13 +1,14 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.regex.*;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.Logger;
 import java.util.logging.FileHandler;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 
 public class Webcrawler
 {
@@ -43,35 +44,21 @@ public class Webcrawler
 
         while(pagesParsed < crawlNumber && lQueue.size() != 0)
         {
-            String fullHTML = "";
             boolean parsesuccess = true;
             String workingURL = lQueue.get();
             history.add(workingURL);
 
+            Document doc = null;
             try
             {
-                URL url = new URL(workingURL);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-
-                String line;
-                while ((line = reader.readLine()) != null)
-                {
-                    fullHTML = fullHTML + line;
-                }
-                reader.close();
+                doc = Jsoup.connect(workingURL).get();
             }
-            catch (java.net.MalformedURLException e)
+            catch (Exception e)
             {
-                crawllogger.log(Level.WARNING, "Error parsing " + workingURL + ", Malformed URL Exception: " + e.getMessage());
+                e.printStackTrace();
                 parsesuccess = false;
             }
-            catch (IOException r)
-            {
-                crawllogger.log(Level.WARNING, "Error parsing " + workingURL + ", IO Exception: " + r.getMessage());
-                parsesuccess = false;
-            }
-
-            if(fullHTML.equals("")) parsesuccess = false;
+            if (doc == null) parsesuccess = false;
 
             if(parsesuccess)
             {
@@ -79,12 +66,12 @@ public class Webcrawler
                 crawllogger.log(Level.FINE, "Page successfully parsed: " + workingURL);
                 pagesParsed++;
 
-                Pattern pat = Pattern.compile("https?://[\\w-_]+\\.[^\"^'\\s]+");
-                Matcher mat = pat.matcher(fullHTML);
 
-                while(mat.find())
+                Elements links = doc.select("a[href]");
+
+                for (Element link : links)
                 {
-                    String foundlink = mat.group();
+                    String foundlink = link.attr("abs:href");
                     boolean alreadyvisited = false;
 
                     for(String ilink : history)

@@ -40,6 +40,7 @@ public class Webcrawler
         }
 
         crawllogger.log(Level.INFO, "Starting Webcrawl for " + crawlNumber + " pages.");
+        long ctime = System.currentTimeMillis();
 
         while(pagesParsed < crawlNumber && lQueue.size() != 0)
         {
@@ -103,14 +104,15 @@ public class Webcrawler
             }
         }
 
+        double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
         if(pagesParsed == crawlNumber)
         {
-            crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed: Desired number of crawls reached.");
+            crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed in " + f_time + " seconds: Desired number of crawls reached.");
         }
 
         if(lQueue.size() == 0)
         {
-            crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed: Not enough links to proceed.");
+            crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed in " + f_time + " seconds: Not enough links to proceed.");
         }
         System.out.println("Pages found:");
         for (String pages : foundpages)

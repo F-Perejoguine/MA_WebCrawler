@@ -15,8 +15,8 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://stackoverflow.com/questions/4452288/what-is-the-name-of-this-convention-for-curly-braces", "http://docs.oracle.com/javase/index.html"};
-        int crawlNumber = 10;
+        String[] seedLinks = {"http://www.hlportal.de"};
+        int crawlNumber = 200;
         int reserveFactor = 4;
 
         int pagesParsed = 0;
@@ -56,7 +56,7 @@ public class Webcrawler
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                crawllogger.log(Level.INFO, e.getMessage() +  " : " + workingURL);
                 parsesuccess = false;
             }
             if (doc == null) parsesuccess = false;
@@ -68,7 +68,7 @@ public class Webcrawler
                 pagesParsed++;
 
 
-                Elements links = doc.select("a[href]");
+                Elements links = doc.select("[href]");
 
                 for (Element link : links)
                 {

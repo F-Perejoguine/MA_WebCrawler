@@ -4,6 +4,8 @@ import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.Logger;
 import java.util.logging.FileHandler;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,7 +18,7 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://gtaforums.com/topic/402516-outoftimers-guide-to-gta-iv-mods/"};
+        String[] seedLinks = {};
         int crawlNumber = 1;
         int reserveFactor = 4;
 
@@ -111,7 +113,8 @@ public class Webcrawler
         for (String pages : foundpages)
             System.out.println(pages);
     }
-/*/
+
+    //Only for testing purposes
     private static void DOMtoFile(Document doc) {
         try{
             FileWriter fw = new FileWriter("DOM_" + System.currentTimeMillis() + ".txt", true);
@@ -123,12 +126,52 @@ public class Webcrawler
 
         }
     }
-/*/
-    private static boolean match(String s1, String s2)
+
+    //Only for testing purposes
+    private static void Testmatch()
+    {
+        String text = "";
+        text = readFile("testfile.txt");
+
+        String keyword = "arbeit";
+        String[] tokenized = text.split(" ");
+
+        for (String element : tokenized)
+        {
+
+            if (element != "") match(keyword, element);
+        }
+
+    }
+
+    //copied from http://stackoverflow.com/questions/326390/how-to-create-a-java-string-from-the-contents-of-a-file, Only for testing purposes
+    private static String readFile( String file )
+    {
+        String result = "";
+        try{
+        String         ls = System.getProperty("line.separator");
+        BufferedReader reader = new BufferedReader( new FileReader (file));
+        String         line = null;
+        StringBuilder  stringBuilder = new StringBuilder();
+        while( ( line = reader.readLine() ) != null ) {
+        stringBuilder.append( line );
+        stringBuilder.append( ls );
+    }
+
+
+        result = stringBuilder.toString();
+        }
+        catch(Exception e) {}
+        return result;
+}
+
+
+
+    private static boolean match(String keyword, String subject)
     {
         int matches = 0;
-        char[] chars1 = s1.toLowerCase().toCharArray();
-        char[] chars2 = s2.toLowerCase().toCharArray();
+        char[] chars1 = keyword.toLowerCase().toCharArray();
+        char[] chars2 = subject.toLowerCase().toCharArray();
 
         for (int i = 0; i < Math.min(chars1.length, chars2.length); i++)
         {
@@ -150,7 +193,7 @@ public class Webcrawler
         {
             return true;
         }
-        else if(chars1.length > 4 && matches >= Math.round((chars1.length + 4) / 2) + 3)
+        else if(chars1.length > 4 && matches >= Math.round((chars1.length - 4) / 2.0) + 3)
         {
             return true;
         }

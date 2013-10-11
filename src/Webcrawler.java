@@ -1,3 +1,4 @@
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
@@ -15,8 +16,8 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://www.hlportal.de"};
-        int crawlNumber = 200;
+        String[] seedLinks = {"http://gtaforums.com/topic/402516-outoftimers-guide-to-gta-iv-mods/"};
+        int crawlNumber = 1;
         int reserveFactor = 4;
 
         int pagesParsed = 0;
@@ -56,38 +57,43 @@ public class Webcrawler
             }
             catch (Exception e)
             {
-                crawllogger.log(Level.INFO, e.getMessage() +  " : " + workingURL);
+                crawllogger.log(Level.WARNING, e.getMessage() +  " parsing " + workingURL);
                 parsesuccess = false;
             }
             if (doc == null) parsesuccess = false;
 
             if(parsesuccess)
             {
+                //DOMtoFile(doc);
                 foundpages.add(workingURL);
-                crawllogger.log(Level.FINE, "Page successfully parsed: " + workingURL);
                 pagesParsed++;
 
-
-                Elements links = doc.select("[href]");
+                int lfound = 0;
+                int ladded = 0;
+                Elements links = doc.select("a[href]");
 
                 for (Element link : links)
                 {
+                    lfound++;
                     String foundlink = link.attr("abs:href");
                     boolean alreadyvisited = false;
 
                     for(String ilink : history)
                         if(ilink.equals(foundlink)) alreadyvisited = true;
 
-                    if(!alreadyvisited && !lQueue.checkDoubles(foundlink) && lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor)
+                    if(!alreadyvisited && !lQueue.checkDoubles(foundlink)) //&& lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor)
                     {
-                        crawllogger.log(Level.FINE, "ACCEPTED: " + foundlink + "  DATA: " + alreadyvisited + ", " + lQueue.checkDoubles(foundlink) + ", " + (lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor));
+                        crawllogger.log(Level.FINER, "Link added to queue: " + foundlink);
                         lQueue.add(foundlink);
+                        ladded++;
                     }
                     else
                     {
-                        crawllogger.log(Level.FINE, "REJECTED: " + foundlink + "  DATA: " + alreadyvisited + ", " + lQueue.checkDoubles(foundlink) + ", " + (lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor));
+                        crawllogger.log(Level.FINEST, "Link rejected: " + foundlink + "  DATA: " + alreadyvisited + ", " + lQueue.checkDoubles(foundlink) + ", " + (lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor));
                     }
                 }
+
+                crawllogger.log(Level.FINE, "PAGE SUCCESSFULLY PARSED: " + workingURL + ", Links found: " + lfound + ", Links added: " + ladded);
             }
         }
 
@@ -101,8 +107,57 @@ public class Webcrawler
         {
             crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed in " + f_time + " seconds: Not enough links to proceed.");
         }
-        System.out.println("Pages found:");
+        System.out.println("Pages parsed:");
         for (String pages : foundpages)
             System.out.println(pages);
     }
+/*/
+    private static void DOMtoFile(Document doc) {
+        try{
+            FileWriter fw = new FileWriter("DOM_" + System.currentTimeMillis() + ".txt", true);
+            fw.write(doc.toString());
+            fw.close();
+        }
+        catch(Exception e)
+        {
+
+        }
+    }
+/*/
+    private static boolean match(String s1, String s2)
+    {
+        int matches = 0;
+        char[] chars1 = s1.toLowerCase().toCharArray();
+        char[] chars2 = s2.toLowerCase().toCharArray();
+
+        for (int i = 0; i < Math.min(chars1.length, chars2.length); i++)
+        {
+            if (chars1[i] == chars2[i])
+            {
+                matches++;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (chars1.length <= 3 && chars2.length == chars1.length && matches == 3)
+        {
+            return true;
+        }
+        else if(chars1.length == 4 && matches == 4)
+        {
+            return true;
+        }
+        else if(chars1.length > 4 && matches >= Math.round((chars1.length + 4) / 2) + 3)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
+

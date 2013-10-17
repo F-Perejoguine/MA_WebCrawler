@@ -18,7 +18,8 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {};
+        String[] seedLinks = {"http://www.teamfortress.com/"};
+        String[] input = {"keyword1"};
         int crawlNumber = 1;
         int reserveFactor = 4;
 
@@ -66,10 +67,10 @@ public class Webcrawler
 
             if(parsesuccess)
             {
-                //DOMtoFile(doc);
                 foundpages.add(workingURL);
                 pagesParsed++;
 
+                matchWebsite(doc, input);
                 int lfound = 0;
                 int ladded = 0;
                 Elements links = doc.select("a[href]");
@@ -112,6 +113,18 @@ public class Webcrawler
         System.out.println("Pages parsed:");
         for (String pages : foundpages)
             System.out.println(pages);
+    }
+
+    private static double matchWebsite(Document doc, String[] input)
+    {
+        DOMtoFile(doc);
+
+        Website current = new Website(doc, input);
+
+
+
+
+        return 2.0;
     }
 
     //Only for testing purposes

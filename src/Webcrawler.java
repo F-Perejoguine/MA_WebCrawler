@@ -15,18 +15,24 @@ import org.jsoup.select.Elements;
 
 public class Webcrawler
 {
+    public static CrawlConfiguration config;
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://www.teamfortress.com/"};
-        String[] input = {"keyword1"};
+
+        String[] seedLinks = {"http://www.stevepavlina.com/"};
+        String[] k_topical = {"keyword1"};
+        String[] k_abstract = {};
+        String[] k_specific = {};
+
         int crawlNumber = 1;
-        int reserveFactor = 4;
+        final int FACTOR_RESERVE = 4;
 
         int pagesParsed = 0;
         ArrayList<String> history = new ArrayList<String>();
         ArrayList<String> foundpages = new ArrayList<String>();
-        Queue lQueue = new Queue(seedLinks);
+        Queue lQueue = new Queue(config.getSeedLinks());
+
         Logger crawllogger = Logger.getLogger("MAIN_LOGGER");
         FileHandler logFileHandler;
 
@@ -70,7 +76,7 @@ public class Webcrawler
                 foundpages.add(workingURL);
                 pagesParsed++;
 
-                matchWebsite(doc, input);
+                matchWebsite(doc);
                 int lfound = 0;
                 int ladded = 0;
                 Elements links = doc.select("a[href]");
@@ -92,7 +98,7 @@ public class Webcrawler
                     }
                     else
                     {
-                        crawllogger.log(Level.FINEST, "Link rejected: " + foundlink + "  DATA: " + alreadyvisited + ", " + lQueue.checkDoubles(foundlink) + ", " + (lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor));
+                        crawllogger.log(Level.FINEST, "Link rejected: " + foundlink + "  DATA: " + alreadyvisited + ", " + lQueue.checkDoubles(foundlink) + ", " + (lQueue.size() < (pagesParsed + crawlNumber) * FACTOR_RESERVE));
                     }
                 }
 
@@ -115,11 +121,11 @@ public class Webcrawler
             System.out.println(pages);
     }
 
-    private static double matchWebsite(Document doc, String[] input)
+    private static double matchWebsite(Document doc)
     {
         DOMtoFile(doc);
 
-        Website current = new Website(doc, input);
+        Website current = new Website(doc, config.getTopical(), config.getAbstract(), config.getSpecific());
 
 
 

@@ -7,7 +7,6 @@ public class Queue {
     public Queue(String[] seeds)
     {
         qLinks = new ArrayList();
-
         Collections.addAll(qLinks, seeds);
     }
 

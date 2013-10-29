@@ -7,32 +7,46 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-
 public class Website {
 
     private Document website;
-    private String[] predicate;
-    private List<String> content;
+    private List<String> textcontent;
+    private String[] k_topical;
+    private String[] k_abstract;
+    private String[] k_specific;
 
-    public Website(Document doc, String[] input) {
+    public Website(Document doc, String[] ktopical, String[] kabstract, String[] kspecific) {
         website = doc;
-        predicate = input;
-        content = new ArrayList();
+        k_topical = ktopical;
+        k_abstract = kabstract;
+        k_specific = kspecific;
+        textcontent = new ArrayList();
 
         String bodyText = getElements(website.getElementsByTag("body").first());
 
         if (hasContent(bodyText)) {
-            content.add(bodyText);
+            textcontent.add(bodyText);
         }
 
-        for(String entry : content) {
+        for(String entry : textcontent) {
             System.out.println("FOUND: " + entry);
         }
 
     }
 
-    private String getElements(Element e)
-    {
+    //Generates a sort of "rating" for the website based on how well it matches to the user-defined input.
+    public double getRating() {
+
+
+
+
+    }
+
+    public String[] getTextContent() {
+        return textcontent.toArray(new String[textcontent.size()]);
+    }
+
+    private String getElements(Element e) {
 
         String ownText = e.ownText();
         String[] ignoreTags = {"p", "br", "a", "b", "i", "u", "em", "font", "q", "big", "small", "strong", "sub", "sup"};
@@ -52,7 +66,7 @@ public class Website {
                 }
 
                 if(noTagMatch) {
-                    content.add(childText);
+                    textcontent.add(childText);
                 }
             }
         }
@@ -60,7 +74,7 @@ public class Website {
         return ownText;
     }
 
-    private boolean hasContent(String input)
+    private boolean hasContent(String input) //Checks the input string for alphanumeric content
     {
         //The boolean variable that the function will output later
         boolean hascontent = false;

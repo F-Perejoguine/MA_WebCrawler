@@ -15,15 +15,18 @@ import org.jsoup.select.Elements;
 
 public class Webcrawler
 {
-    public static CrawlConfiguration config;
+    public static CrawlConfiguration config; //Configuration class containing
 
     public static void main(String[] args)
     {
-
-        String[] seedLinks = {"http://www.stevepavlina.com/"};
-        String[] k_topical = {"keyword1"};
+        config = new CrawlConfiguration();
+        String[] seedLinks = {"http://www.oracle.com/index.html"};
+        String[] k_topical = {"computers"};
         String[] k_abstract = {};
         String[] k_specific = {};
+
+        config.setSeedLinks(seedLinks);
+        config.setKeywords(k_topical, k_abstract, k_specific);
 
         int crawlNumber = 1;
         final int FACTOR_RESERVE = 4;
@@ -41,7 +44,7 @@ public class Webcrawler
             logFileHandler = new FileHandler("crawllog_" + System.currentTimeMillis() + ".txt", true);
             crawllogger.addHandler(logFileHandler);
             SimpleFormatter logFormatter = new SimpleFormatter();
-            crawllogger.setLevel(Level.FINE);
+            crawllogger.setLevel(config.getLogLevel());
             logFileHandler.setFormatter(logFormatter);
 
         }
@@ -76,7 +79,10 @@ public class Webcrawler
                 foundpages.add(workingURL);
                 pagesParsed++;
 
-                matchWebsite(doc);
+                DOMtoFile(doc);
+                Website current = new Website(doc, config.getTopical(), config.getAbstract(), config.getSpecific());
+                System.out.println(current.getRating());
+
                 int lfound = 0;
                 int ladded = 0;
                 Elements links = doc.select("a[href]");
@@ -121,18 +127,6 @@ public class Webcrawler
             System.out.println(pages);
     }
 
-    private static double matchWebsite(Document doc)
-    {
-        DOMtoFile(doc);
-
-        Website current = new Website(doc, config.getTopical(), config.getAbstract(), config.getSpecific());
-
-
-
-
-        return 2.0;
-    }
-
     //Only for testing purposes
     private static void DOMtoFile(Document doc) {
         try{
@@ -151,15 +145,14 @@ public class Webcrawler
     {
         String text = "";
         text = readFile("testfile.txt");
-
+        String tests = "Und Steve's Unterführung dachte mit.";
         String keyword = "arbeit";
-        String[] tokenized = text.split(" ");
+        String[] tokenized = tests.split("(\\s|[^a-zA-Z_0-9_äöü])+");
 
-        for (String element : tokenized)
-        {
+            for (String token : tokenized) {
+                System.out.println(token);
+            }
 
-            if (element != "") match(keyword, element);
-        }
 
     }
 
@@ -183,43 +176,5 @@ public class Webcrawler
         catch(Exception e) {}
         return result;
 }
-
-
-
-    private static boolean match(String keyword, String subject)
-    {
-        int matches = 0;
-        char[] chars1 = keyword.toLowerCase().toCharArray();
-        char[] chars2 = subject.toLowerCase().toCharArray();
-
-        for (int i = 0; i < Math.min(chars1.length, chars2.length); i++)
-        {
-            if (chars1[i] == chars2[i])
-            {
-                matches++;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        if (chars1.length <= 3 && chars2.length == chars1.length && matches == 3)
-        {
-            return true;
-        }
-        else if(chars1.length == 4 && matches == 4)
-        {
-            return true;
-        }
-        else if(chars1.length > 4 && matches >= Math.round((chars1.length - 4) / 2.0) + 3)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
 }
 

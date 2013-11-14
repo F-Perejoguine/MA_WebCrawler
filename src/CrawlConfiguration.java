@@ -14,14 +14,10 @@ public class CrawlConfiguration {
     private String[] k_topical;
     private String[] k_abstract;
     private String[] k_specific;
-    private Level loglevel;
+    private Level loglevel = Level.FINE;
     private int crawlNumber;
 
-    public CrawlConfiguration() {
-
-
-
-    }
+    public CrawlConfiguration() {}
 
     public void setSeedLinks(String[] links) {
         seedLinks = links;

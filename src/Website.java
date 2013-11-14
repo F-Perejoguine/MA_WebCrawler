@@ -27,19 +27,38 @@ public class Website {
         if (hasContent(bodyText)) {
             textcontent.add(bodyText);
         }
-
-        for(String entry : textcontent) {
-            System.out.println("FOUND: " + entry);
-        }
-
     }
 
     //Generates a sort of "rating" for the website based on how well it matches to the user-defined input.
     public double getRating() {
 
+        String token_delimiter = "(\\s|[^a-zA-Z_0-9_äöü])+";
+        double rating = 0.0;
+        for(String element : textcontent) {
 
+            String[] tokens = element.split(token_delimiter);
+            int t_matches = 0;
+            int a_matches = 0;
+            int s_matches = 0;
 
+            for (String token : tokens) {
 
+                for (String keyword : k_topical) {
+                    if (match(token, keyword)) t_matches++;
+                }
+                for (String keyword : k_abstract) {
+                    if (match(token, keyword)) a_matches++;
+                }
+                for (String keyword : k_specific) {
+                    if (match(token, keyword)) s_matches++;
+                }
+            }
+
+            double topicalrating = (double)t_matches * tokens.length;
+            rating = rating + topicalrating;
+        }
+
+        return rating;
     }
 
     public String[] getTextContent() {
@@ -98,4 +117,42 @@ public class Website {
 
         return hascontent;
     }
+
+
+    private static boolean match(String keyword, String subject)
+    {
+        int matches = 0;
+        char[] chars1 = keyword.toLowerCase().toCharArray();
+        char[] chars2 = subject.toLowerCase().toCharArray();
+
+        for (int i = 0; i < Math.min(chars1.length, chars2.length); i++)
+        {
+            if (chars1[i] == chars2[i])
+            {
+                matches++;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (chars1.length <= 3 && chars2.length == chars1.length && matches == 3)
+        {
+            return true;
+        }
+        else if(chars1.length == 4 && matches == 4)
+        {
+            return true;
+        }
+        else if(chars1.length > 4 && matches >= Math.round((chars1.length - 4) / 2.0) + 3)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 }

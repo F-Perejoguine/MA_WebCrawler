@@ -20,15 +20,15 @@ public class Webcrawler
     public static void main(String[] args)
     {
         config = new CrawlConfiguration();
-        String[] seedLinks = {"http://www.oracle.com/index.html"};
-        String[] k_topical = {"computers"};
+        String[] seedLinks = {"http://www.hlportal.de/"};
+        String[] k_topical = {"valve", "team", "fortress", "computer", "games", "steam"};
         String[] k_abstract = {};
         String[] k_specific = {};
 
         config.setSeedLinks(seedLinks);
         config.setKeywords(k_topical, k_abstract, k_specific);
 
-        int crawlNumber = 1;
+        int crawlNumber = 100;
         final int FACTOR_RESERVE = 4;
 
         int pagesParsed = 0;

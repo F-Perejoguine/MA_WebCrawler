@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.jsoup.nodes.Document;
@@ -34,28 +35,30 @@ public class Website {
 
         String token_delimiter = "(\\s|[^a-zA-Z_0-9_äöü])+";
         double rating = 0.0;
+        final double PAR_U = 0.012;
+        final double PAR_V = 0.09;
+        final double PAR_A = 80.0;
+        final double PAR_B = 10.0;
+        int KTcount = k_topical.length;
+
         for(String element : textcontent) {
+            int[] matches = new int[KTcount];
 
-            String[] tokens = element.split(token_delimiter);
-            int t_matches = 0;
-            int a_matches = 0;
-            int s_matches = 0;
+            String[] text_tokens = element.split(token_delimiter);
 
-            for (String token : tokens) {
-
-                for (String keyword : k_topical) {
-                    if (match(token, keyword)) t_matches++;
-                }
-                for (String keyword : k_abstract) {
-                    if (match(token, keyword)) a_matches++;
-                }
-                for (String keyword : k_specific) {
-                    if (match(token, keyword)) s_matches++;
+            for (String token : text_tokens) {
+                for (int i = 0; i < KTcount; i++) {
+                    if (match(token, k_topical[i])) matches[i]++;
                 }
             }
 
-            double topicalrating = (double)t_matches * tokens.length;
-            rating = rating + topicalrating;
+            double element_trating = 0.0;
+            for(int KTmatchcount : matches) {
+                double x = (double)KTmatchcount/(double)text_tokens.length + PAR_U;
+                double topicalrating = (double) text_tokens.length * (1.0 - (1.0/(PAR_A * x)) + x/PAR_B - PAR_V) / (double)KTcount;
+                element_trating = element_trating + ((topicalrating > 0) ? topicalrating : 0);
+            }
+            rating = rating + element_trating;
         }
 
         return rating;

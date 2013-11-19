@@ -59,7 +59,7 @@ public class Webcrawler
         while(pagesParsed < crawlNumber && lQueue.size() != 0)
         {
             boolean parsesuccess = true;
-            String workingURL = lQueue.get();
+            String workingURL = lQueue.get().url;
             history.add(workingURL);
 
             Document doc = null;
@@ -99,7 +99,7 @@ public class Webcrawler
                     if(!alreadyvisited && !lQueue.checkDoubles(foundlink)) //&& lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor)
                     {
                         crawllogger.log(Level.FINER, "Link added to queue: " + foundlink);
-                        lQueue.add(foundlink);
+                        lQueue.add(new Link(foundlink, 0.0));
                         ladded++;
                     }
                     else

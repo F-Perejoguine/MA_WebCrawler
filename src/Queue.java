@@ -2,44 +2,59 @@ import java.util.*;
 
 public class Queue {
 
-    private List<String> qLinks;
+    private PriorityQueue<Link> pqLinks;
+    private List<Link> seedLinks;
 
     public Queue(String[] seeds)
     {
-        qLinks = new ArrayList();
-        Collections.addAll(qLinks, seeds);
-    }
-
-    public String get(){
-        String link = qLinks.get(0);
-        int lSize = qLinks.size();
-
-        for (int i = 0; i < lSize; i++)
-        {
-            if (i != lSize-1) qLinks.set(i, qLinks.get(i+1));
+        seedLinks = new ArrayList();
+        for (String link : seeds) {
+            seedLinks.add(new Link(link, 0.0));
         }
-        qLinks.remove(lSize - 1);
-
-        return link;
+        LinkSort ls = new LinkSort();
+        pqLinks = new PriorityQueue<Link>(1, ls);
     }
 
-    public void add(String element)
+    public Link get(){
+
+        Link rlink = null;
+
+        if(seedLinks.isEmpty()) {
+            rlink = pqLinks.poll();
+        } else {
+            for(int i = 0; i < seedLinks.size(); i++) {
+                rlink = seedLinks.get(i);
+                seedLinks.remove(i);
+                break;
+            }
+        }
+
+        return rlink;
+    }
+
+    public void add(Link element)
     {
-        qLinks.add(element);
+        pqLinks.offer(element);
     }
 
     public int size()
     {
-        return qLinks.size();
+        return pqLinks.size();
     }
 
     public boolean checkDoubles(String checkURL)
     {
         boolean isDouble = false;
-        for (String link : qLinks)
+        if(seedLinks.size() != 0) {
+            for(Link link : seedLinks) {
+                if(checkURL.equals(link.url)) isDouble = true;
+            }
+        }
+        for (Link link : pqLinks)
         {
-            if(checkURL.equals(link)) isDouble = true;
+            if(checkURL.equals(link.url)) isDouble = true;
         }
         return isDouble;
+
     }
 }

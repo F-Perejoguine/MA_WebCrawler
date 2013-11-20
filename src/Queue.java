@@ -34,27 +34,33 @@ public class Queue {
 
     public void add(Link element)
     {
+        if(size() < Config.getCrawlNumber() * Config.FACTOR_RESERVE)
+        Config.core.calculatePriority(element);
         pqLinks.offer(element);
     }
 
     public int size()
     {
-        return pqLinks.size();
+        return pqLinks.size() + seedLinks.size();
     }
 
-    public boolean checkDoubles(String checkURL)
+    public boolean checkQueue(Link li)
     {
         boolean isDouble = false;
         if(seedLinks.size() != 0) {
             for(Link link : seedLinks) {
-                if(checkURL.equals(link.url)) isDouble = true;
+                if(li.url.equals(link.url)) {
+                    isDouble = true;
+                    link.addRef(li.getRef(0));
+                }
             }
         }
-        for (Link link : pqLinks)
-        {
-            if(checkURL.equals(link.url)) isDouble = true;
-        }
-        return isDouble;
 
+        for (Link link : pqLinks) {
+            if(li.url.equals(link.url)) isDouble = true;
+            link.addRef(li.getRef(0));
+        }
+
+        return isDouble;
     }
 }

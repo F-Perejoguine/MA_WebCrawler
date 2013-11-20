@@ -1,131 +1,91 @@
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.Logger;
-import java.util.logging.FileHandler;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 
 public class Webcrawler
 {
-    public static CrawlConfiguration config; //Configuration class containing
 
     public static void main(String[] args)
     {
-        config = new CrawlConfiguration();
-        String[] seedLinks = {"http://www.hlportal.de/"};
+        String[] seedLinks = {"http://www.hlportal.de/", "http://www.poke646.com"};
         String[] k_topical = {"valve", "team", "fortress", "computer", "games", "steam"};
         String[] k_abstract = {};
         String[] k_specific = {};
 
-        config.setSeedLinks(seedLinks);
-        config.setKeywords(k_topical, k_abstract, k_specific);
+        Config.setSeedLinks(seedLinks);
+        Config.setKeywords(k_topical, k_abstract, k_specific);
+        Config.core = new Core();
 
-        int crawlNumber = 100;
-        final int FACTOR_RESERVE = 4;
+        int crawlNumber = 10;
+        Config.setCrawlNumber(crawlNumber);
+        Config.lQueue = new Queue(Config.getSeedLinks());
 
-        int pagesParsed = 0;
-        ArrayList<String> history = new ArrayList<String>();
-        ArrayList<String> foundpages = new ArrayList<String>();
-        Queue lQueue = new Queue(config.getSeedLinks());
 
-        Logger crawllogger = Logger.getLogger("MAIN_LOGGER");
-        FileHandler logFileHandler;
-
-        try
-        {
-            logFileHandler = new FileHandler("crawllog_" + System.currentTimeMillis() + ".txt", true);
-            crawllogger.addHandler(logFileHandler);
-            SimpleFormatter logFormatter = new SimpleFormatter();
-            crawllogger.setLevel(config.getLogLevel());
-            logFileHandler.setFormatter(logFormatter);
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        crawllogger.log(Level.INFO, "Starting Webcrawl for " + crawlNumber + " pages.");
+        Config.logger.log(Level.INFO, "Starting Webcrawl for " + crawlNumber + " pages.");
         long ctime = System.currentTimeMillis();
 
-        while(pagesParsed < crawlNumber && lQueue.size() != 0)
+        while(Config.core.getCollectionTotal() < crawlNumber && Config.lQueue.size() != 0)
         {
-            boolean parsesuccess = true;
-            String workingURL = lQueue.get().url;
-            history.add(workingURL);
+            Link workinglink = Config.lQueue.get();
 
+            String workingURL = workinglink.url;
+            boolean parsesuccess = true;
             Document doc = null;
+            System.out.println("parsing " + workingURL);
             try
             {
                 doc = Jsoup.connect(workingURL).get();
             }
             catch (Exception e)
             {
-                crawllogger.log(Level.WARNING, e.getMessage() +  " parsing " + workingURL);
+                Config.logger.log(Level.WARNING, e.getMessage() +  " parsing " + workingURL);
                 parsesuccess = false;
             }
             if (doc == null) parsesuccess = false;
 
             if(parsesuccess)
             {
-                foundpages.add(workingURL);
-                pagesParsed++;
-
-                DOMtoFile(doc);
-                Website current = new Website(doc, config.getTopical(), config.getAbstract(), config.getSpecific());
-                System.out.println(current.getRating());
-
-                int lfound = 0;
-                int ladded = 0;
-                Elements links = doc.select("a[href]");
-
-                for (Element link : links)
-                {
-                    lfound++;
-                    String foundlink = link.attr("abs:href");
-                    boolean alreadyvisited = false;
-
-                    for(String ilink : history)
-                        if(ilink.equals(foundlink)) alreadyvisited = true;
-
-                    if(!alreadyvisited && !lQueue.checkDoubles(foundlink)) //&& lQueue.size() < (pagesParsed + crawlNumber) * reserveFactor)
-                    {
-                        crawllogger.log(Level.FINER, "Link added to queue: " + foundlink);
-                        lQueue.add(new Link(foundlink, 0.0));
-                        ladded++;
-                    }
-                    else
-                    {
-                        crawllogger.log(Level.FINEST, "Link rejected: " + foundlink + "  DATA: " + alreadyvisited + ", " + lQueue.checkDoubles(foundlink) + ", " + (lQueue.size() < (pagesParsed + crawlNumber) * FACTOR_RESERVE));
-                    }
-                }
-
-                crawllogger.log(Level.FINE, "PAGE SUCCESSFULLY PARSED: " + workingURL + ", Links found: " + lfound + ", Links added: " + ladded);
+                //DOMtoFile(doc);
+                Website current = new Website(doc, workingURL);
+                workinglink.rating = current.getRating();
+                Config.core.addPage(workinglink);
+                current.parseLinks();
+            }
+            else
+            {
+                Config.flinks.add(workingURL);
             }
         }
 
+
         double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
-        if(pagesParsed == crawlNumber)
+        if(Config.core.getCollectionTotal() == crawlNumber)
         {
-            crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed in " + f_time + " seconds: Desired number of crawls reached.");
+            Config.logger.log(Level.INFO, "Process finished with " + Config.core.getCollectionTotal() + " pages parsed in " + f_time + " seconds: Desired number of crawls reached.");
         }
 
-        if(lQueue.size() == 0)
+        if(Config.lQueue.size() == 0)
         {
-            crawllogger.log(Level.INFO, "Process finished with " + pagesParsed + " pages parsed in " + f_time + " seconds: Not enough links to proceed.");
+            Config.logger.log(Level.INFO, "Process finished with " + Config.core.getCollectionTotal() + " pages parsed in " + f_time + " seconds: Not enough links to proceed.");
         }
+
+
         System.out.println("Pages parsed:");
-        for (String pages : foundpages)
-            System.out.println(pages);
+        for (Link element : Config.core.collection)
+        {
+            System.out.println(element.url + "       " + element.rating);
+        }
+
     }
+
+
+
 
     //Only for testing purposes
     private static void DOMtoFile(Document doc) {

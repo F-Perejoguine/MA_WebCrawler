@@ -13,11 +13,11 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://www.gamestar.de/"};
+        String[] seedLinks = {"http://www.techspot.com/"};
         String[] k_topical = {"valve", "team", "fortress", "computer", "games", "steam"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 100;
+        int crawlNumber = 10;
 
 
         Config.setSeedLinks(seedLinks);
@@ -92,14 +92,30 @@ public class Webcrawler
             Config.logger.log(Level.INFO, "Process finished with " + Config.core.getCollectionTotal() + " pages parsed in " + f_time + " seconds: Not enough links to proceed.");
         }
 
+        boolean successful = false;
+        String newLine = System.getProperty("line.separator");
 
-        System.out.println("Pages parsed:");
-        while(Config.core.getCollectionTotal() != 0)
-        {
-            Link element = Config.core.collection.poll();
-            System.out.println(element.rating + "        " + element.url);
+        try {
+            FileWriter fw = new FileWriter("crawleroutput.txt", true);
+
+            while(Config.core.getCollectionTotal() != 0)
+            {
+                Link element = Config.core.collection.poll();
+                fw.write(element.url + newLine);
+                fw.write("SC  SM  LM  UM  SD      RATING                     SOURCE URL" + newLine);
+                for(Datapoint dp : element.data) {
+                    fw.write(dp.srccontent + "  " + dp.srcmatches + "  " + dp.linkmatches + "  " + dp.urlmatches + "  " + dp.samedomain + "    " + element.rating + "    " + dp.sourceURL + newLine);
+                }
+                fw.write(element.getRefNumber() + newLine);
+                fw.write(newLine + newLine + newLine);
+            }
+            successful = true;
+            fw.close();
+        } catch(Exception e) {
+            System.err.println(e.getMessage());
         }
 
+        if(successful) System.out.println("Result written to file.");
     }
 
 

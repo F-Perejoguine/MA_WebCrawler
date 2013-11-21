@@ -71,6 +71,7 @@ public class Website {
                 double topicalrating = (double) text_tokens.length * (1.0 - (1.0/(PAR_A * x)) + x/PAR_B - PAR_V) / (double)KTcount;
                 element_trating = element_trating + ((topicalrating > 0) ? topicalrating : 0);
             }
+
             srating = srating + element_trating;
         }
 
@@ -78,11 +79,9 @@ public class Website {
     }
 
     public void parseLinks() {
-
         Elements links = website.select("a[href]");
 
-        for (Element link : links)
-        {
+        for (Element link : links) {
             boolean notfailed = true;
             boolean notcrawled = false;
 
@@ -91,13 +90,15 @@ public class Website {
             for (String element : Config.flinks)
                 if(element.equals(foundlink.url)) notfailed = false;
 
-            if(notfailed) {
-                boolean samedomain = false;
+            if(notfailed && !foundlink.url.equals(sourceURL)) {
+
+                boolean samedomain = false;    //Calculate all the necessary information for a datapoint
                 int linktextmatches = 0;
                 int URLmatches = 0;
 
                 String linkdomain = "";
                 String sourcedomain = "";
+
                 try {
                     sourcedomain = new URI(sourceURL).getHost();
                     linkdomain = new URI(foundlink.url).getHost();
@@ -108,6 +109,7 @@ public class Website {
 
                 String token_delimiter = "(\\s|[^a-zA-Z_0-9_äöü])+";
                 String[] linktext_tokens = link.ownText().split(token_delimiter);
+
                 for (String token : linktext_tokens) {
                     for (int i = 0; i < k_topical.length; i++) {
                         if (match(token, k_topical[i])) linktextmatches++;
@@ -116,7 +118,7 @@ public class Website {
 
                 URLmatches = closematch(foundlink.url, k_topical, false);
 
-                foundlink.addRef(new Datapoint(matchcount, wordcount, linktextmatches, URLmatches, samedomain));
+                foundlink.addRef(new Datapoint(matchcount, wordcount, linktextmatches, URLmatches, samedomain, sourceURL), "initial");
                 notcrawled = !Config.core.checkCollection(foundlink);
             }
 

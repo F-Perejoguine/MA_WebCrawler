@@ -43,13 +43,11 @@ public class Queue {
         return result;
     }
 
-    public void add(Link element)
-    {
+    public void add(Link element) {
         Config.core.calculatePriority(element);
 
         if(size() < calculateMaxSize()) {
             pqLinks.offer(element);
-            //Config.logger.log(Level.FINEST, "Adding link: " + element.url);
         } else {
             Link leastpriorityelement = element;
             for (Link li : pqLinks) {
@@ -58,31 +56,32 @@ public class Queue {
             if(element.rating > leastpriorityelement.rating){
                 pqLinks.remove(leastpriorityelement);
                 pqLinks.offer(element);
-                //Config.logger.log(Level.FINEST, "Replacing least priority link with: " + element.url);
             }
         }
     }
 
-    public int size()
-    {
+    public int size() {
         return pqLinks.size() + seedLinks.size();
     }
 
     public boolean checkQueue(Link li)
     {
         boolean isDouble = false;
+
         if(seedLinks.size() != 0) {
             for(Link link : seedLinks) {
-                if(li.url.equals(link.url)) {
+                if(li.url.equals(link.url)) {  //If element with same URL as link found in queue, check for insertion
                     isDouble = true;
-                    link.addRef(li.getRef(0));
+                    if (!link.checkDatapoints(li.getRef(0))) link.addRef(li.getRef(0), "CheckQueue 1st");
                 }
             }
         }
 
         for (Link link : pqLinks) {
-            if(li.url.equals(link.url)) isDouble = true;
-            link.addRef(li.getRef(0));
+            if(li.url.equals(link.url)) {
+                isDouble = true;
+                if(!link.checkDatapoints(li.getRef(0))) link.addRef(li.getRef(0), "CheckQueue 2nd");
+            }
         }
 
         return isDouble;

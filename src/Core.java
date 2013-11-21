@@ -23,12 +23,12 @@ public class Core {
     }
 
     public boolean checkCollection(Link input) {
-
         boolean alreadyexists = false;
+
         for(Link element : collection) {
             if(input.url.equals(element.url)) {
                 alreadyexists = true;
-                element.addRef(input.getRef(0));
+                if(!element.checkDatapoints(input.getRef(0))) element.addRef(input.getRef(0), "CollectionCheck");
             }
         }
 

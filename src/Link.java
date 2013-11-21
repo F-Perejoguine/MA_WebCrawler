@@ -12,7 +12,7 @@ public class Link {
 
     public String url;
     public double rating;
-    private List<Datapoint> data;
+    public List<Datapoint> data;
 
     public Link(String u, double r) {
         url = u;
@@ -20,7 +20,8 @@ public class Link {
         data = new ArrayList<Datapoint>();
     }
 
-    public void addRef(Datapoint a) {
+    public void addRef(Datapoint a, String actor) {
+        //System.out.println("ADDREFERENCE from " + actor + " from     " + a.sourceURL);
         data.add(a);
     }
 
@@ -30,5 +31,17 @@ public class Link {
 
     public int getRefNumber() {
         return data.size();
+    }
+
+    public boolean checkDatapoints(Datapoint dp) {
+        boolean doubledata = false;
+
+        for (int i = 0; i < data.size(); i++)  //loop through all datapoints of link to check for exact matches for the provided Datapoint.
+            if (data.get(i).dataequals(dp)) {
+                doubledata = true;
+                break;
+            }
+
+        return doubledata;
     }
 }

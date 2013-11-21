@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.net.URI;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,9 +14,13 @@ public class Website {
     private String[] k_abstract;
     private String[] k_specific;
     private double rating;
+    private int wordcount = 0;
+    private int matchcount = 0;
+    private String sourceURL;
 
     public Website(Document doc, String sURL) {
         website = doc;
+        sourceURL = sURL;
         k_topical = Config.getTopical();
         k_abstract = Config.getAbstract();
         k_specific = Config.getSpecific();
@@ -37,7 +42,6 @@ public class Website {
 
     //Generates a sort of "rating" for the website based on how well it matches to the user-defined input.
     public void calculateRating() {
-
         String token_delimiter = "(\\s|[^a-zA-Z_0-9_äöü])+";
         double srating = 0.0;
         final double PAR_U = 0.012;
@@ -52,8 +56,12 @@ public class Website {
             String[] text_tokens = element.split(token_delimiter);
 
             for (String token : text_tokens) {
+                wordcount++;
                 for (int i = 0; i < KTcount; i++) {
-                    if (match(token, k_topical[i])) matches[i]++;
+                    if (match(token, k_topical[i])) {
+                        matchcount++;
+                        matches[i]++;
+                    }
                 }
             }
 
@@ -77,13 +85,38 @@ public class Website {
         {
             boolean notfailed = true;
             boolean notcrawled = false;
+
             Link foundlink = new Link(link.attr("abs:href"), 0.0);
 
             for (String element : Config.flinks)
                 if(element.equals(foundlink.url)) notfailed = false;
 
             if(notfailed) {
-                foundlink.addRef(new Dataset(rating, 0));
+                boolean samedomain = false;
+                int linktextmatches = 0;
+                int URLmatches = 0;
+
+                String linkdomain = "";
+                String sourcedomain = "";
+                try {
+                    sourcedomain = new URI(sourceURL).getHost();
+                    linkdomain = new URI(foundlink.url).getHost();
+                } catch(Exception e) {}
+
+                if(sourcedomain.equals(linkdomain))
+                    samedomain = true;
+
+                String token_delimiter = "(\\s|[^a-zA-Z_0-9_äöü])+";
+                String[] linktext_tokens = link.ownText().split(token_delimiter);
+                for (String token : linktext_tokens) {
+                    for (int i = 0; i < k_topical.length; i++) {
+                        if (match(token, k_topical[i])) linktextmatches++;
+                    }
+                }
+
+                URLmatches = closematch(foundlink.url, k_topical, false);
+
+                foundlink.addRef(new Datapoint(matchcount, wordcount, linktextmatches, URLmatches, samedomain));
                 notcrawled = !Config.core.checkCollection(foundlink);
             }
 
@@ -168,6 +201,24 @@ public class Website {
             return true;
         }
         else return chars1.length > 4 && matches >= Math.round((chars1.length - 4) / 2.0) + 3;
+    }
+
+    private static int closematch(String subject, String[] keywords, boolean exact) {
+        int matches = 0;
+
+        for(String keyword : keywords) {
+            String workingstring = subject.toLowerCase();
+
+            if(!exact) {
+                int kl = keyword.length();
+                int minmatches = kl;
+                if(kl > 4) minmatches = (int)Math.round((kl - 4) / 2.0) + 3;
+
+                workingstring = keyword.substring(0, minmatches);
+            }
+            matches = matches + (subject.length() - subject.replace(workingstring, "").length()) / workingstring.length();
+        }
+        return matches;
     }
 
     public double getRating() {

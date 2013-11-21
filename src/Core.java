@@ -19,7 +19,7 @@ public class Core {
 
     public void calculatePriority(Link li) {
         //li.rating = 100.0 * Math.random();
-        li.rating = li.getRef(0).sourceRating;
+        li.rating = li.getRef(0).srcmatches;
     }
 
     public boolean checkCollection(Link input) {

@@ -12,19 +12,19 @@ public class Link {
 
     public String url;
     public double rating;
-    private List<Dataset> data;
+    private List<Datapoint> data;
 
     public Link(String u, double r) {
         url = u;
         rating = r;
-        data = new ArrayList<Dataset>();
+        data = new ArrayList<Datapoint>();
     }
 
-    public void addRef(Dataset a) {
+    public void addRef(Datapoint a) {
         data.add(a);
     }
 
-    public Dataset getRef(int index) {
+    public Datapoint getRef(int index) {
         return data.get(index);
     }
 

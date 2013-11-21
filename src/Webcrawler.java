@@ -17,7 +17,7 @@ public class Webcrawler
         String[] k_topical = {"valve", "team", "fortress", "computer", "games", "steam"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 1000;
+        int crawlNumber = 100;
 
 
         Config.setSeedLinks(seedLinks);

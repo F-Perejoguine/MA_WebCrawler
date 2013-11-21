@@ -13,25 +13,24 @@ public class Website {
     private String[] k_abstract;
     private String[] k_specific;
     private double rating;
-    private String sourceURL;
 
     public Website(Document doc, String sURL) {
         website = doc;
-        sourceURL = sURL;
         k_topical = Config.getTopical();
         k_abstract = Config.getAbstract();
         k_specific = Config.getSpecific();
-        textcontent = new ArrayList();
+        textcontent = new ArrayList<String>();
 
         try {
             String bodyText = getElements(website.getElementsByTag("body").first());
 
             if (hasContent(bodyText)) {
                 textcontent.add(bodyText);
-                calculateRating();
             }
+            calculateRating();
+
         } catch (Exception e) {
-            System.out.println(e.getMessage() + " while parsing " + sourceURL);
+            System.out.println(e.getMessage() + " while parsing " + sURL);
             rating = 0.0;
         }
     }
@@ -84,7 +83,7 @@ public class Website {
                 if(element.equals(foundlink.url)) notfailed = false;
 
             if(notfailed) {
-                foundlink.addRef(new Dataset(sourceURL, rating, 0));
+                foundlink.addRef(new Dataset(rating, 0));
                 notcrawled = !Config.core.checkCollection(foundlink);
             }
 
@@ -111,7 +110,7 @@ public class Website {
 
                 for(String tag : ignoreTags) {
 
-                    if (e_child.tagName() == tag) {
+                    if (e_child.tagName().equals(tag)) {
                         ownText = ownText + " " + childText;
                         noTagMatch = false;
                     }
@@ -168,11 +167,7 @@ public class Website {
         else if(chars1.length == 4 && matches == 4) {
             return true;
         }
-        else if(chars1.length > 4 && matches >= Math.round((chars1.length - 4) / 2.0) + 3) {
-            return true;
-        } else {
-            return false;
-        }
+        else return chars1.length > 4 && matches >= Math.round((chars1.length - 4) / 2.0) + 3;
     }
 
     public double getRating() {

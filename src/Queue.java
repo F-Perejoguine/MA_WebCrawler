@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.logging.Level;
 
 public class Queue {
 
@@ -7,7 +8,7 @@ public class Queue {
 
     public Queue(String[] seeds)
     {
-        seedLinks = new ArrayList();
+        seedLinks = new ArrayList<Link>();
         for (String link : seeds) {
             seedLinks.add(new Link(link, 0.0));
         }
@@ -17,26 +18,49 @@ public class Queue {
 
     public Link get(){
 
-        Link rlink = null;
+        Link rlink;
 
         if(seedLinks.isEmpty()) {
             rlink = pqLinks.poll();
         } else {
-            for(int i = 0; i < seedLinks.size(); i++) {
-                rlink = seedLinks.get(i);
-                seedLinks.remove(i);
-                break;
-            }
+            rlink = seedLinks.get(0);
+            seedLinks.remove(0);
         }
 
         return rlink;
     }
 
+    public int calculateMaxSize() {
+        final double FACTOR_ERRORRANGE = 2.0;
+        double flinksize = (double)Config.flinks.size();
+        double totalcrawled = (double)Config.core.getCollectionTotal();
+        double crawlnumber = (double)Config.getCrawlNumber();
+        int result = (int)(Config.FACTOR_RESERVE * crawlnumber);
+
+        if (totalcrawled != 0) {
+            result = (int)Math.round(((FACTOR_ERRORRANGE * flinksize + totalcrawled) / totalcrawled) * (crawlnumber - totalcrawled));
+        }
+        return result;
+    }
+
     public void add(Link element)
     {
-        if(size() < Config.getCrawlNumber() * Config.FACTOR_RESERVE)
         Config.core.calculatePriority(element);
-        pqLinks.offer(element);
+
+        if(size() < calculateMaxSize()) {
+            pqLinks.offer(element);
+            //Config.logger.log(Level.FINEST, "Adding link: " + element.url);
+        } else {
+            Link leastpriorityelement = element;
+            for (Link li : pqLinks) {
+                if(li.rating < leastpriorityelement.rating) leastpriorityelement = li;
+            }
+            if(element.rating > leastpriorityelement.rating){
+                pqLinks.remove(leastpriorityelement);
+                pqLinks.offer(element);
+                //Config.logger.log(Level.FINEST, "Replacing least priority link with: " + element.url);
+            }
+        }
     }
 
     public int size()

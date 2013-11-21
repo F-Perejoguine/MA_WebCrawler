@@ -7,12 +7,12 @@
  */
 public class Dataset {
 
-    public String sourceURL;
+    //public String sourceURL;
     public double sourceRating;
     public int inlinkmatches;
 
-    public Dataset(String sURL, double srating, int matches) {
-        sourceURL = sURL;
+    public Dataset(double srating, int matches) {
+        //sourceURL = sURL;
         sourceRating = srating;
         inlinkmatches = matches;
     }

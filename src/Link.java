@@ -17,7 +17,7 @@ public class Link {
     public Link(String u, double r) {
         url = u;
         rating = r;
-        data = new ArrayList();
+        data = new ArrayList<Dataset>();
     }
 
     public void addRef(Dataset a) {

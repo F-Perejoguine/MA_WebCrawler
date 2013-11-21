@@ -1,11 +1,11 @@
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import java.net.URI;
 
 
 public class Webcrawler
@@ -13,18 +13,19 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://www.hlportal.de/", "http://www.poke646.com"};
+        String[] seedLinks = {"http://www.gamestar.de/"};
         String[] k_topical = {"valve", "team", "fortress", "computer", "games", "steam"};
         String[] k_abstract = {};
         String[] k_specific = {};
+        int crawlNumber = 1000;
+
 
         Config.setSeedLinks(seedLinks);
         Config.setKeywords(k_topical, k_abstract, k_specific);
-        Config.core = new Core();
-
-        int crawlNumber = 10;
         Config.setCrawlNumber(crawlNumber);
+        Config.core = new Core();
         Config.lQueue = new Queue(Config.getSeedLinks());
+        Config.initializeLogger();
 
 
         Config.logger.log(Level.INFO, "Starting Webcrawl for " + crawlNumber + " pages.");
@@ -32,12 +33,28 @@ public class Webcrawler
 
         while(Config.core.getCollectionTotal() < crawlNumber && Config.lQueue.size() != 0)
         {
+
+            // Get current size of heap in bytes
+            long heapSize = Runtime.getRuntime().totalMemory();
+
+            // Get maximum size of heap in bytes. The heap cannot grow beyond this size.// Any attempt will result in an OutOfMemoryException.
+            long heapMaxSize = Runtime.getRuntime().maxMemory();
+
+            // Get amount of free memory within the heap in bytes. This size will increase // after garbage collection and decrease as new objects are created.
+            long heapFreeSize = Runtime.getRuntime().freeMemory();
+
+
             Link workinglink = Config.lQueue.get();
 
             String workingURL = workinglink.url;
             boolean parsesuccess = true;
             Document doc = null;
-            System.out.println("parsing " + workingURL);
+            String domain = "";
+            try {
+                domain = new URI(workingURL).getHost();
+            } catch(Exception e) {}
+
+            System.out.println(heapMaxSize + " max, " + heapSize + " current, " + heapFreeSize + " free    parsing page Nr. " + Config.core.getCollectionTotal() + ":   " + workingURL);
             try
             {
                 doc = Jsoup.connect(workingURL).get();
@@ -77,9 +94,10 @@ public class Webcrawler
 
 
         System.out.println("Pages parsed:");
-        for (Link element : Config.core.collection)
+        while(Config.core.getCollectionTotal() != 0)
         {
-            System.out.println(element.url + "       " + element.rating);
+            Link element = Config.core.collection.poll();
+            System.out.println(element.rating + "        " + element.url);
         }
 
     }

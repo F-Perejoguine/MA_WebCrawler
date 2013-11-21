@@ -18,11 +18,12 @@ public class Config {
     private static String[] k_abstract;
     private static String[] k_specific;
     private static int crawlNumber;
-    static final int FACTOR_RESERVE = 4;
+    static final double FACTOR_RESERVE = 2.0;
+    private static Level loglevel = Level.FINE;
     public static Logger logger = Logger.getLogger("MAIN_LOGGER");
     public static Queue lQueue;
     public static Core core;
-    public static List<String> flinks = new ArrayList();
+    public static List<String> flinks = new ArrayList<String>();
 
     private Config() {}
 
@@ -36,7 +37,7 @@ public class Config {
         k_specific = specific;
     }
 
-    public static void initializeLogger(Level loglevel) {
+    public static void initializeLogger() {
         FileHandler logFileHandler;
 
         try
@@ -44,7 +45,7 @@ public class Config {
             logFileHandler = new FileHandler("crawllog_" + System.currentTimeMillis() + ".txt", true);
             logger.addHandler(logFileHandler);
             SimpleFormatter logFormatter = new SimpleFormatter();
-            logger.setLevel(Level.FINE);
+            logger.setLevel(loglevel);
             logFileHandler.setFormatter(logFormatter);
         }
         catch (Exception e)

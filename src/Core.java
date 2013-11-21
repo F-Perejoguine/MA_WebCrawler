@@ -10,14 +10,16 @@ import java.lang.Math;
 
 public class Core {
 
-    public List<Link> collection;
+    public PriorityQueue<Link> collection;
 
     public Core() {
-        collection = new ArrayList();
+        LinkSort ls = new LinkSort();
+        collection = new PriorityQueue<Link>(1, ls);
     }
 
     public void calculatePriority(Link li) {
-        li.rating = 100.0 * Math.random();
+        //li.rating = 100.0 * Math.random();
+        li.rating = li.getRef(0).sourceRating;
     }
 
     public boolean checkCollection(Link input) {
@@ -34,7 +36,7 @@ public class Core {
     }
 
     public void addPage(Link input) {
-        collection.add(input);
+        collection.offer(input);
     }
 
     public int getCollectionTotal() {

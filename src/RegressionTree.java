@@ -21,7 +21,7 @@ public class RegressionTree {
         datamatrix = null;
 
         //If stopping condition has occurred, create leaf, else calculate split-point and variable and create two subtrees.
-        if(workingmatrix.length < 10) {
+        if(workingmatrix.length < 8) {
             Config.leafamount++;
 
             isLeaf = true;

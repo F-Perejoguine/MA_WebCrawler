@@ -17,7 +17,7 @@ public class Webcrawler
         String[] k_topical = {"machine", "learning", "regression", "decision", "trees", "artificial", "intelligence", "linear"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 50;
+        int crawlNumber = 100;
 
 
         Config.setSeedLinks(seedLinks);
@@ -30,6 +30,7 @@ public class Webcrawler
 
         Config.logger.log(Level.INFO, "Starting Webcrawl for " + crawlNumber + " pages.");
         long ctime = System.currentTimeMillis();
+        double ratingsum = 0;
 
         while(Config.core.getCollectionTotal() < crawlNumber && Config.lQueue.size() != 0)
         {
@@ -70,7 +71,12 @@ public class Webcrawler
                 //DOMtoFile(doc);
                 Website current = new Website(doc, workingURL);
                 workinglink.rating = current.getRating();
+
+                ratingsum = ratingsum + workinglink.rating;
+                System.out.println("Average site rating until now: " + (ratingsum / Config.core.getCollectionTotal()));
+
                 Config.core.addPage(workinglink);
+                Config.core.reloadModel();
                 current.parseLinks();
             }
             else
@@ -94,6 +100,8 @@ public class Webcrawler
         }
 
         boolean successful = false;
+
+
         String newLine = System.getProperty("line.separator");
 
         int count = 0;
@@ -111,9 +119,9 @@ public class Webcrawler
                     fw.write(dp.srccontent + "  " + dp.srcmatches + "  " + dp.linkmatches + "  " + dp.urlmatches + "  " + dp.samedomain + "    " + element.rating + newLine);
                     //count++;
 
-                    double estimation = Config.core.calculatePriority(dp);
-                    sum = sum + Math.abs(element.rating - estimation);
-                    System.out.println("Predicted: " + estimation + ", reality: " + element.rating);
+                    //double estimation = Config.core.calculatePriority(dp);
+                    //sum = sum + Math.abs(element.rating - estimation);
+                    //System.out.println("Predicted: " + estimation + ", reality: " + element.rating);
 
                     count++;
                 }

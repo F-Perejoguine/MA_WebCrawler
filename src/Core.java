@@ -20,13 +20,16 @@ public class Core {
     }
 
     public void calculatePriority(Link li) {
-        li.rating = 100.0 * Math.random();
-        //li.rating = li.getRef(0).srcmatches;
+        double sum = 0;
+
+        for(int i = 0; i < li.getRefNumber(); i++)
+            sum = sum + treeRoot.estimateY(li.getRef(i));
+
+        li.rating = sum / (double)li.getRefNumber();
     }
 
     public double calculatePriority(Datapoint dp) {
         return treeRoot.estimateY(dp);
-        //li.rating = li.getRef(0).srcmatches;
     }
 
     public boolean checkCollection(Link input) {

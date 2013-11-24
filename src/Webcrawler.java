@@ -17,7 +17,7 @@ public class Webcrawler
         String[] k_topical = {"machine", "learning", "regression", "decision", "trees", "artificial", "intelligence", "linear"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 3000;
+        int crawlNumber = 50;
 
 
         Config.setSeedLinks(seedLinks);
@@ -33,9 +33,6 @@ public class Webcrawler
 
         while(Config.core.getCollectionTotal() < crawlNumber && Config.lQueue.size() != 0)
         {
-            if(Config.core.getCollectionTotal() == 10) {
-                Config.core.reloadModel();
-            }
             // Get current size of heap in bytes
             long heapSize = Runtime.getRuntime().totalMemory();
 
@@ -82,6 +79,8 @@ public class Webcrawler
             }
         }
 
+            Config.core.reloadModel();
+
 
         double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
         if(Config.core.getCollectionTotal() == crawlNumber)
@@ -97,6 +96,8 @@ public class Webcrawler
         boolean successful = false;
         String newLine = System.getProperty("line.separator");
 
+        int count = 0;
+        double sum = 0;
         try {
             FileWriter fw = new FileWriter("crawleroutput.txt", true);
 
@@ -108,11 +109,18 @@ public class Webcrawler
                 fw.write("SC  SM  LM  UM  SD      RATING         " + newLine);
                 for(Datapoint dp : element.data) {
                     fw.write(dp.srccontent + "  " + dp.srcmatches + "  " + dp.linkmatches + "  " + dp.urlmatches + "  " + dp.samedomain + "    " + element.rating + newLine);
+                    //count++;
+
+                    double estimation = Config.core.calculatePriority(dp);
+                    sum = sum + Math.abs(element.rating - estimation);
+                    System.out.println("Predicted: " + estimation + ", reality: " + element.rating);
+
+                    count++;
                 }
                 fw.write(element.getRefNumber() + newLine);
                 fw.write(newLine + newLine + newLine);
 
-                System.out.println(element.rating + "       " + element.url + newLine);
+                //System.out.println(element.rating + "       " + element.url + newLine);
             }
             successful = true;
             fw.close();
@@ -120,7 +128,7 @@ public class Webcrawler
             System.err.println(e.getMessage());
         }
 
-        if(successful) System.out.println("Result written to file.");
+        if(successful) System.out.println("Result written to file. Average error: " + (sum / (double)count));
     }
 
 

@@ -25,6 +25,8 @@ public class Config {
     public static Queue lQueue;
     public static Core core;
     public static List<String> flinks = new ArrayList<String>();
+    public static int nodeamount = 0;
+    public static int leafamount = 0;
 
     private Config() {}
 

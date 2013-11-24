@@ -21,7 +21,9 @@ public class RegressionTree {
         datamatrix = null;
 
         //If stopping condition has occurred, create leaf, else calculate split-point and variable and create two subtrees.
-        if(datamatrix[0].length < 5) {
+        if(workingmatrix.length < 10) {
+            Config.leafamount++;
+
             isLeaf = true;
 
             value = 0;
@@ -30,25 +32,28 @@ public class RegressionTree {
 
             value = value / workingmatrix.length;
         } else {
-            findSplitPoint();
+            Config.nodeamount++;
+
+            int arrsplitpoint = findSplitPoint();
             sortby(splitvar);
 
-            int[][] rightarray = new int[workingmatrix[0].length - splitpoint - 1][2];
-            int[][] leftarray = new int[splitpoint + 1][2];
+            int[][] rightarray = new int[workingmatrix.length - arrsplitpoint - 1][2];
+            int[][] leftarray = new int[arrsplitpoint + 1][2];
 
-            System.arraycopy(workingmatrix, splitpoint + 1, rightarray, 0, workingmatrix.length - splitpoint - 1);
-            System.arraycopy(workingmatrix, 0, leftarray, 0, splitpoint + 1);
+            System.arraycopy(workingmatrix, arrsplitpoint + 1, rightarray, 0, workingmatrix.length - arrsplitpoint - 1);
+            System.arraycopy(workingmatrix, 0, leftarray, 0, arrsplitpoint + 1);
 
             subtreeL = new RegressionTree(leftarray);
             subtreeR = new RegressionTree(rightarray);
-
             workingmatrix = null;
         }
     }
 
-    public void findSplitPoint() {
+    public int findSplitPoint() {
         int bestsplitpoint = 0;
-        int splitpointvar = 0;
+        int bestsplitarrpoint = 0;
+        int bestsplitvar = 0;
+
         double bestsplitvalue = 0;
 
         int Nofall = workingmatrix.length;
@@ -65,7 +70,7 @@ public class RegressionTree {
             double nl = 0;
 
             if(x == 4) {
-                for(int i = 0; i < workingmatrix[0].length - 1; i++) {
+                for(int i = 0; i < workingmatrix.length - 1; i++) {
                     sl = sl + pointY(i);
                     sr = sr - pointY(i);
                     nl++;
@@ -75,13 +80,13 @@ public class RegressionTree {
                         double newsplitvalue = (sl * sl / nl) + (sr * sr / nr);
                         if(newsplitvalue > bestsplitvalue) {
                             bestsplitvalue = newsplitvalue;
-                            splitpoint = i;
-                            splitpointvar = x;
+                            bestsplitarrpoint = i;
+                            bestsplitvar = x;
                         }
                     }
                 }
             } else {
-                for(int i = 0; i < workingmatrix[0].length - 1; i++) {
+                for(int i = 0; i < workingmatrix.length - 1; i++) {
                     sl = sl + pointY(i);
                     sr = sr - pointY(i);
                     nl++;
@@ -92,16 +97,17 @@ public class RegressionTree {
                         double newsplitvalue = (sl * sl / nl) + (sr * sr / nr);
                         if(newsplitvalue > bestsplitvalue) {
                             bestsplitvalue = newsplitvalue;
-                            splitpoint = i;
-                            splitpointvar = x;
-
+                            bestsplitarrpoint = i;
+                            bestsplitvar = x;
+                            bestsplitpoint = pointN(i, x);
                         }
                     }
                 }
             }
         }
         splitpoint = bestsplitpoint;
-        splitvar = splitpointvar;
+        splitvar = bestsplitvar;
+        return bestsplitarrpoint;
     }
 
     public int pointN(int i, int varindex) {
@@ -109,7 +115,7 @@ public class RegressionTree {
     }
 
     public boolean pointB(int i) {
-            return (Boolean) Config.core.collection.get(workingmatrix[i][0]).getRef(workingmatrix[i][1]).get(5);
+            return (Boolean) Config.core.collection.get(workingmatrix[i][0]).getRef(workingmatrix[i][1]).get(4);
     }
 
     public double pointY(int i) {
@@ -128,13 +134,12 @@ public class RegressionTree {
                     int b = workingmatrix[i][1];
                     workingmatrix[i][0] = workingmatrix[j][0];
                     workingmatrix[i][1] = workingmatrix[j][1];
+                    workingmatrix[j][0] = a;
+                    workingmatrix[j][1] = b;
                     i++;
-                    j--;
-                }
-                if (pointB(i) == true)
+                } else if(pointB(i) == true) {
                     i++;
-                if(pointB(j) == false)
-                    j--;
+                } else j--;
             }
         } else {
             quicksort(x, 0, workingmatrix.length - 1);
@@ -162,6 +167,26 @@ public class RegressionTree {
 
             quicksort(x, start, j-1);
             quicksort(x, j+1, end);
+        }
+    }
+
+    public double estimateY(Datapoint dp) {
+        if (isLeaf) {
+            return value;
+        } else {
+            if (splitvar == 4) {
+                if ((Boolean)dp.get(splitvar)) {
+                    return subtreeL.estimateY(dp);
+                } else {
+                    return subtreeR.estimateY(dp);
+                }
+            } else {
+                if((Integer)dp.get(splitvar) > splitpoint) {
+                    return subtreeR.estimateY(dp);
+                } else {
+                    return subtreeL.estimateY(dp);
+                }
+            }
         }
     }
 }

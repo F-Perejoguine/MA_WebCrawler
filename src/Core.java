@@ -24,6 +24,11 @@ public class Core {
         //li.rating = li.getRef(0).srcmatches;
     }
 
+    public double calculatePriority(Datapoint dp) {
+        return treeRoot.estimateY(dp);
+        //li.rating = li.getRef(0).srcmatches;
+    }
+
     public boolean checkCollection(Link input) {
         boolean alreadyexists = false;
 
@@ -50,9 +55,13 @@ public class Core {
         System.out.println("Creating Regression tree model...");
         long ctime = System.currentTimeMillis();
 
-        treeRoot = new RegressionTree(createRootMatrix());
-    }
+       treeRoot = new RegressionTree(createRootMatrix());
 
+        double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
+        System.out.println("RegressionTree model created in " + f_time + " second with " + Config.nodeamount + " nodes and " + Config.leafamount + " leaves.");
+
+
+    }
 
     public int[][] createRootMatrix() {
         int size = 0;
@@ -62,10 +71,12 @@ public class Core {
 
         int[][] rootMatrix = new int[size][2];
 
+        int index = 0;
         for(int i = 0; i < collection.size(); i++) {
             for(int j = 0; j < collection.get(i).getRefNumber(); j++) {
-            rootMatrix[i][0] = i;
-            rootMatrix[i][1]= collection.get(i).getRefNumber();
+                rootMatrix[index][0] = i;
+                rootMatrix[index][1]= j;
+                index++;
             }
         }
 

@@ -12,18 +12,33 @@ public class Datapoint {
     public int linkmatches;
     public int urlmatches;
     public boolean samedomain;
-    public String sourceURL;
 
-    public Datapoint(int srcm, int srcc, int lm, int urlm, boolean sdomain, String srcurl) {
+    public Datapoint(int srcm, int srcc, int lm, int urlm, boolean sdomain) {
         srcmatches = srcm;
         srccontent = srcc;
         linkmatches = lm;
         urlmatches = urlm;
         samedomain = sdomain;
-        sourceURL = srcurl;
     }
 
     public boolean dataequals(Datapoint dp) {
         return srcmatches == dp.srcmatches && srccontent == dp.srccontent && linkmatches == dp.linkmatches && urlmatches == dp.urlmatches && samedomain == dp.samedomain;
+    }
+
+    public Object get(int index) {
+        switch(index) {
+            case 0:
+                return srcmatches;
+            case 1:
+                return srccontent;
+            case 2:
+                return linkmatches;
+            case 3:
+                return urlmatches;
+            case 4:
+                return samedomain;
+            default:
+                return null;
+        }
     }
 }

@@ -118,7 +118,7 @@ public class Website {
 
                 URLmatches = closematch(foundlink.url, k_topical, false);
 
-                foundlink.addRef(new Datapoint(matchcount, wordcount, linktextmatches, URLmatches, samedomain, sourceURL), "initial");
+                foundlink.addRef(new Datapoint(matchcount, wordcount, linktextmatches, URLmatches, samedomain));
                 notcrawled = !Config.core.checkCollection(foundlink);
             }
 

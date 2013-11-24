@@ -20,7 +20,7 @@ public class Link {
         data = new ArrayList<Datapoint>();
     }
 
-    public void addRef(Datapoint a, String actor) {
+    public void addRef(Datapoint a) {
         //System.out.println("ADDREFERENCE from " + actor + " from     " + a.sourceURL);
         data.add(a);
     }

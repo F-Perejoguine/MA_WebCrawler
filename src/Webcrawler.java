@@ -13,11 +13,11 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://www.techspot.com/"};
-        String[] k_topical = {"valve", "team", "fortress", "computer", "games", "steam"};
+        String[] seedLinks = {"http://www.gamestar.de/", "http://stackoverflow.com/questions/3571203/what-is-the-exact-meaning-of-runtime-getruntime-totalmemory-and-freememory", "http://www.hlportal.de/", "http://www.teamfortress.com/"};
+        String[] k_topical = {"machine", "learning", "regression", "decision", "trees", "artificial", "intelligence", "linear"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 10;
+        int crawlNumber = 3000;
 
 
         Config.setSeedLinks(seedLinks);
@@ -33,7 +33,9 @@ public class Webcrawler
 
         while(Config.core.getCollectionTotal() < crawlNumber && Config.lQueue.size() != 0)
         {
-
+            if(Config.core.getCollectionTotal() == 10) {
+                Config.core.reloadModel();
+            }
             // Get current size of heap in bytes
             long heapSize = Runtime.getRuntime().totalMemory();
 
@@ -98,16 +100,19 @@ public class Webcrawler
         try {
             FileWriter fw = new FileWriter("crawleroutput.txt", true);
 
-            while(Config.core.getCollectionTotal() != 0)
+            for(int i = 0; i < Config.core.collection.size(); i++)
             {
-                Link element = Config.core.collection.poll();
+                Link element = Config.core.collection.get(i);
+
                 fw.write(element.url + newLine);
-                fw.write("SC  SM  LM  UM  SD      RATING                     SOURCE URL" + newLine);
+                fw.write("SC  SM  LM  UM  SD      RATING         " + newLine);
                 for(Datapoint dp : element.data) {
-                    fw.write(dp.srccontent + "  " + dp.srcmatches + "  " + dp.linkmatches + "  " + dp.urlmatches + "  " + dp.samedomain + "    " + element.rating + "    " + dp.sourceURL + newLine);
+                    fw.write(dp.srccontent + "  " + dp.srcmatches + "  " + dp.linkmatches + "  " + dp.urlmatches + "  " + dp.samedomain + "    " + element.rating + newLine);
                 }
                 fw.write(element.getRefNumber() + newLine);
                 fw.write(newLine + newLine + newLine);
+
+                System.out.println(element.rating + "       " + element.url + newLine);
             }
             successful = true;
             fw.close();

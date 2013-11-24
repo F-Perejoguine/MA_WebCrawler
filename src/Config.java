@@ -19,6 +19,7 @@ public class Config {
     private static String[] k_specific;
     private static int crawlNumber;
     static final double FACTOR_RESERVE = 2.0;
+    static final int datasetsize = 5;
     private static Level loglevel = Level.FINE;
     public static Logger logger = Logger.getLogger("MAIN_LOGGER");
     public static Queue lQueue;

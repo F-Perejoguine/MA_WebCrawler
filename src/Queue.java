@@ -72,7 +72,7 @@ public class Queue {
             for(Link link : seedLinks) {
                 if(li.url.equals(link.url)) {  //If element with same URL as link found in queue, check for insertion
                     isDouble = true;
-                    if (!link.checkDatapoints(li.getRef(0))) link.addRef(li.getRef(0), "CheckQueue 1st");
+                    if (!link.checkDatapoints(li.getRef(0))) link.addRef(li.getRef(0));
                 }
             }
         }
@@ -80,7 +80,7 @@ public class Queue {
         for (Link link : pqLinks) {
             if(li.url.equals(link.url)) {
                 isDouble = true;
-                if(!link.checkDatapoints(li.getRef(0))) link.addRef(li.getRef(0), "CheckQueue 2nd");
+                if(!link.checkDatapoints(li.getRef(0))) link.addRef(li.getRef(0));
             }
         }
 

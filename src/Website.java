@@ -128,10 +128,6 @@ public class Website {
         }
     }
 
-    public String[] getTextContent() {
-        return textcontent.toArray(new String[textcontent.size()]);
-    }
-
     private String getElements(Element e) {
 
         String ownText = e.ownText();

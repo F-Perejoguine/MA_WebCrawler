@@ -13,8 +13,8 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
-        String[] seedLinks = {"http://www.gamestar.de/", "http://stackoverflow.com/questions/3571203/what-is-the-exact-meaning-of-runtime-getruntime-totalmemory-and-freememory", "http://www.hlportal.de/", "http://www.teamfortress.com/"};
-        String[] k_topical = {"machine", "learning", "regression", "decision", "trees", "artificial", "intelligence", "linear"};
+        String[] seedLinks = {"http://de.wikipedia.org/wiki/Java_Virtual_Machine"};
+        String[] k_topical = {"programming", "java", "oracle"};
         String[] k_abstract = {};
         String[] k_specific = {};
         int crawlNumber = 100;
@@ -77,6 +77,7 @@ public class Webcrawler
 
                 Config.core.addPage(workinglink);
                 Config.core.reloadModel();
+                Config.lQueue.updatePriorities();
                 current.parseLinks();
             }
             else

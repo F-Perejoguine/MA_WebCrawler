@@ -16,8 +16,13 @@ public class Queue {
         pqLinks = new PriorityQueue<Link>(1, ls);
     }
 
-    public Link get(){
+    public Queue() {
+        seedLinks = new ArrayList<Link>();
+        LinkSort ls = new LinkSort();
+        pqLinks = new PriorityQueue<Link>(1, ls);
+    }
 
+    public Link get(){
         Link rlink;
 
         if(seedLinks.isEmpty()) {
@@ -30,7 +35,7 @@ public class Queue {
         return rlink;
     }
 
-    public int calculateMaxSize() {
+    private int calculateMaxSize() {
         final double FACTOR_ERRORRANGE = 2.0;
         double flinksize = (double)Config.flinks.size();
         double totalcrawled = (double)Config.core.getCollectionTotal();
@@ -85,5 +90,16 @@ public class Queue {
         }
 
         return isDouble;
+    }
+
+    public void updatePriorities() {
+        if(seedLinks.isEmpty()) {
+            Queue newq = new Queue();
+
+            while(pqLinks.size() != 0)
+                newq.add(pqLinks.poll());
+
+            Config.lQueue = newq;
+        }
     }
 }

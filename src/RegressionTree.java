@@ -20,8 +20,33 @@ public class RegressionTree {
         workingmatrix = datamatrix;
         datamatrix = null;
 
+
+        //Calculate amount of unique output values in matrix.
+        int ycount = 1;
+        if(workingmatrix.length > 0) {
+            ycount  = 0;
+            int current = -1;
+            boolean maxnotreached = true;
+
+            while(maxnotreached) {
+                maxnotreached = false;
+                int s = -1;
+
+                for(int i = 0; i < workingmatrix.length; i++)
+                    if(workingmatrix[i][0] > current && (s == -1 || workingmatrix[i][0] < s)) {
+                            s = workingmatrix[i][0];
+                            maxnotreached = true;
+                    }
+
+                if(maxnotreached) {
+                    current = s;
+                    ycount++;
+                }
+            }
+        }
+
         //If stopping condition has occurred, create leaf, else calculate split-point and variable and create two subtrees.
-        if(workingmatrix.length < 8) {
+        if(ycount < 4) {
             Config.leafamount++;
 
             isLeaf = true;
@@ -56,17 +81,17 @@ public class RegressionTree {
 
         double bestsplitvalue = 0;
 
-        int Nofall = workingmatrix.length;
-        double Sofall = 0;
-        for(int i = 0; i < Nofall; i++)
-            Sofall = Sofall + pointY(i);
+        int N_ofall = workingmatrix.length;
+        double S_ofall = 0;
+        for(int i = 0; i < N_ofall; i++)
+            S_ofall = S_ofall + pointY(i);
 
 
         for(int x = 0; x < Config.datasetsize; x++) {
             sortby(x);
-            double sr = Sofall;
+            double sr = S_ofall;
             double sl = 0;
-            double nr = Nofall;
+            double nr = N_ofall;
             double nl = 0;
 
             if(x == 4) {
@@ -76,7 +101,7 @@ public class RegressionTree {
                     nl++;
                     nr--;
 
-                    if(pointB(i + 1) == false) {
+                    if(!pointB(i + 1)) {
                         double newsplitvalue = (sl * sl / nl) + (sr * sr / nr);
                         if(newsplitvalue > bestsplitvalue) {
                             bestsplitvalue = newsplitvalue;
@@ -128,7 +153,7 @@ public class RegressionTree {
             int j = workingmatrix.length - 1;
 
             while( i != j) {
-                if(pointB(i) == false && pointB(j) == true)
+                if(!pointB(i) && pointB(j))
                 {
                     int a = workingmatrix[i][0];
                     int b = workingmatrix[i][1];
@@ -137,7 +162,7 @@ public class RegressionTree {
                     workingmatrix[j][0] = a;
                     workingmatrix[j][1] = b;
                     i++;
-                } else if(pointB(i) == true) {
+                } else if(pointB(i)) {
                     i++;
                 } else j--;
             }

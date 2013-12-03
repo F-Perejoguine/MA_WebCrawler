@@ -61,8 +61,10 @@ public class Core {
        treeRoot = new RegressionTree(createRootMatrix());
 
         double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
-        System.out.println("RegressionTree model created in " + f_time + " second with " + Config.nodeamount + " nodes and " + Config.leafamount + " leaves.");
 
+        System.out.println("RegressionTree model created in " + f_time + " second with " + Config.nodeamount + " nodes and " + Config.leafamount + " leaves.");
+        Config.nodeamount = 0;
+        Config.leafamount = 0;
 
     }
 

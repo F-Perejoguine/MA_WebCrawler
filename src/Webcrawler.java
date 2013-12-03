@@ -17,7 +17,7 @@ public class Webcrawler
         String[] k_topical = {"programming", "java", "oracle"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 100;
+        int crawlNumber = 20;
 
 
         Config.setSeedLinks(seedLinks);

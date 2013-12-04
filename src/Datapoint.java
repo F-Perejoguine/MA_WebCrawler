@@ -28,9 +28,9 @@ public class Datapoint {
     public Object get(int index) {
         switch(index) {
             case 0:
-                return srcmatches;
-            case 1:
                 return srccontent;
+            case 1:
+                return srcmatches;
             case 2:
                 return linkmatches;
             case 3:

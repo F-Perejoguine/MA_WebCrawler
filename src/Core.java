@@ -55,36 +55,105 @@ public class Core {
     }
 
     public void reloadModel() {
-        System.out.println("Creating Regression tree model...");
         long ctime = System.currentTimeMillis();
 
-       treeRoot = new RegressionTree(createRootMatrix());
+        MatrixSet root = createRootMatrix();
+        System.out.println("Training set: " + root.trMatrix.length + "   Validation set: " + root.valMatrix.length);
+        treeRoot = new RegressionTree(root.trMatrix);
 
-        double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
 
-        System.out.println("RegressionTree model created in " + f_time + " second with " + Config.nodeamount + " nodes and " + Config.leafamount + " leaves.");
-        Config.nodeamount = 0;
-        Config.leafamount = 0;
+        double f_time = Math.round((double)(System.currentTimeMillis() - ctime)) / 1000;
 
+        int leaves = treeRoot.getLeaves();
+        int nodes = leaves - 1;
+
+        System.out.println("RegressionTree model created in " + f_time + " second with " + nodes + " nodes and " + leaves + " leaves.");
+
+
+        ctime = System.currentTimeMillis();
+        double leasterror = -1;
+
+        if(root.valMatrix.length > 5) {
+            RegressionTree workingtree = treeRoot;
+            RegressionTree besttree = workingtree;
+            leasterror = workingtree.getTotalError(root.valMatrix);
+
+            while(!workingtree.isLeaf) {
+                RegressionTree prunetree = workingtree.prune();
+                prunetree.isLeaf = true;
+                prunetree.subtreeL = null;
+                prunetree.subtreeR = null;
+                double treeError = workingtree.getTotalError(root.valMatrix);
+
+                System.out.println("Pruning... " + workingtree.getLeaves() + "     " + treeError);
+
+                if(treeError < leasterror) {
+                    besttree = workingtree.copy();
+                    leasterror = treeError;
+                }
+            }
+            treeRoot = besttree;
+        }
+
+        leaves = treeRoot.getLeaves();
+        nodes = leaves - 1;
+
+
+        double p_time = Math.round((double)(System.currentTimeMillis() - ctime)) / 1000;
+        System.out.println("Pruned to " + nodes + " nodes, and " + leaves + " leaves in " + p_time + " seconds. Total Error of " + leasterror);
     }
 
-    public int[][] createRootMatrix() {
-        int size = 0;
+    public MatrixSet createRootMatrix() {
+        int trsize = 0; //Size of training data set
+        int valsize = 0; //Size of validation data set
 
-        for(int i = 0; i < collection.size(); i++)
-            size = size + collection.get(i).getRefNumber();
-
-        int[][] rootMatrix = new int[size][2];
-
-        int index = 0;
-        for(int i = 0; i < collection.size(); i++) {
-            for(int j = 0; j < collection.get(i).getRefNumber(); j++) {
-                rootMatrix[index][0] = i;
-                rootMatrix[index][1]= j;
-                index++;
+        for(Link element : collection) {
+            int size = element.getRefNumber();
+            if(size == 2) {
+                trsize++;
+                valsize++;
+            } else if(size > 2) {
+                int third = (int)((double)size / 3.0);
+                valsize = valsize + third;
+                trsize = trsize + size - third;
+            } else {
+                trsize = trsize + size;
             }
         }
 
-        return rootMatrix;
+        MatrixSet root = new MatrixSet(new int[trsize][2], new int[valsize][2]);
+
+        int index = 0;
+        int vindex = 0;
+
+        for(int i = 0; i < collection.size(); i++) {
+            if(collection.get(i).getRefNumber() < 3) {
+                for(int j = 0; j < collection.get(i).getRefNumber(); j++) {
+                    if(j == 0) {
+                        root.trMatrix[index][0] = i;
+                        root.trMatrix[index][1]= j;
+                        index++;
+                    } else {
+                        root.valMatrix[vindex][0] = i;
+                        root.valMatrix[vindex][1]= j;
+                        vindex++;
+                    }
+                }
+            } else {
+                int third =(int)((double)collection.get(i).getRefNumber() / 3.0);
+                for(int j = 0; j < collection.get(i).getRefNumber() - third; j++) {
+                    root.trMatrix[index][0] = i;
+                    root.trMatrix[index][1] = j;
+                    index++;
+                }
+                for(int j = collection.get(i).getRefNumber() - third; j < collection.get(i).getRefNumber(); j++) {
+                    root.valMatrix[vindex][0] = i;
+                    root.valMatrix[vindex][1]= j;
+                    vindex++;
+                }
+            }
+        }
+
+        return root;
     }
 }

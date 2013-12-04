@@ -11,15 +11,26 @@ public class RegressionTree {
     public int splitpoint;
     private int[][] workingmatrix;
 
-    private boolean isLeaf = false;
+    public boolean isLeaf = false;
     private double value;
-    private RegressionTree subtreeR;
-    private RegressionTree subtreeL;
+    public RegressionTree subtreeR;
+    public RegressionTree subtreeL;
+
+    public double errIfLeaf;
 
     public RegressionTree(int[][] datamatrix) {
         workingmatrix = datamatrix;
         datamatrix = null;
 
+        //Calculate average target value
+        value = 0;
+        for(int i = 0; i < workingmatrix.length; i++)
+            value = value + pointY(i);
+
+        value = value / workingmatrix.length;
+
+        //Calculate Error Sum
+        calculateError();
 
         //Calculate amount of unique output values in matrix.
         int ycount = 1;
@@ -46,19 +57,9 @@ public class RegressionTree {
         }
 
         //If stopping condition has occurred, create leaf, else calculate split-point and variable and create two subtrees.
-        if(ycount < 4) {
-            Config.leafamount++;
-
+        if(ycount < 2) {
             isLeaf = true;
-
-            value = 0;
-            for(int i = 0; i < workingmatrix.length; i++)
-                value = value + pointY(i);
-
-            value = value / workingmatrix.length;
         } else {
-            Config.nodeamount++;
-
             int arrsplitpoint = findSplitPoint();
             sortby(splitvar);
 
@@ -67,14 +68,132 @@ public class RegressionTree {
 
             System.arraycopy(workingmatrix, arrsplitpoint + 1, rightarray, 0, workingmatrix.length - arrsplitpoint - 1);
             System.arraycopy(workingmatrix, 0, leftarray, 0, arrsplitpoint + 1);
+            workingmatrix = null;
 
             subtreeL = new RegressionTree(leftarray);
             subtreeR = new RegressionTree(rightarray);
-            workingmatrix = null;
         }
     }
 
-    public int findSplitPoint() {
+    public RegressionTree(int nsplitpoint, int nsplitvar, double nvalue, RegressionTree nsubtreeL, RegressionTree nsubtreeR) {
+        splitpoint = nsplitpoint;
+        splitvar = nsplitvar;
+        value = nvalue;
+        isLeaf = false;
+        subtreeL = nsubtreeL;
+        subtreeR = nsubtreeR;
+    }
+
+    public RegressionTree(int nsplitpoint, int nsplitvar, double nvalue) {
+        splitpoint = nsplitpoint;
+        splitvar = nsplitvar;
+        value = nvalue;
+        isLeaf = true;
+    }
+
+    public RegressionTree prune() {
+        if(isLeaf) {
+            return this;
+        } else {
+            RegressionTree l = subtreeL.prune();
+            RegressionTree r = subtreeR.prune();
+
+            double errRateL = 0;
+            if(!l.isLeaf)
+                errRateL = (l.errIfLeaf - l.getErrSum()) / ((double)l.getLeaves() - 1.0);
+            double errRateR = 0;
+            if(!r.isLeaf)
+                errRateR = (r.errIfLeaf - r.getErrSum()) / ((double)r.getLeaves() - 1.0);
+            double errRateT = (errIfLeaf - getErrSum()) / ((double)getLeaves() - 1.0);
+
+            if(!l.isLeaf && errRateL < errRateT && !(!r.isLeaf && errRateR < errRateL)) {
+                return l;
+            } else if(!r.isLeaf && errRateR < errRateT) {
+                return r;
+            } else {
+                return this;
+            }
+        }
+    }
+
+    public int getLeaves() {
+        if(isLeaf) {
+            return 1;
+        } else {
+            return subtreeL.getLeaves() + subtreeR.getLeaves();
+        }
+    }
+
+    public double getErrSum() {
+        if(isLeaf) {
+            return errIfLeaf;
+        } else {
+            return subtreeL.getErrSum() + subtreeR.getErrSum();
+        }
+    }
+
+    private void calculateError() {
+        errIfLeaf = 0;
+        for(int i = 0; i < workingmatrix.length; i++)
+            errIfLeaf = errIfLeaf + Math.abs(pointY(i) - value);
+    }
+
+    public double getTotalError(int[][] validationMatrix) {
+        workingmatrix = validationMatrix;
+
+        if(isLeaf) {
+            double valError = 0;
+            for(int i = 0; i < workingmatrix.length; i++)
+                valError = valError + Math.abs(pointY(i) - value);
+
+            return valError;
+        } else {
+            sortby(splitvar);
+
+            int arrsplitpoint = 0;
+            for(int i = 0; i < workingmatrix.length; i++) {
+                if (splitvar == 4) {
+                    if(!pointB(i)) {
+                        arrsplitpoint = i - 1;
+                        break;
+                    } else if(i == workingmatrix.length - 1) {
+                        arrsplitpoint = i;
+                    }
+                } else {
+                    if(pointN(i, splitvar) > splitpoint) {
+                        arrsplitpoint = i - 1;
+                        break;
+                    }
+                }
+            }
+
+            int[][] rightarray = new int[workingmatrix.length - arrsplitpoint - 1][2];
+            int[][] leftarray = new int[arrsplitpoint + 1][2];
+
+            System.arraycopy(workingmatrix, arrsplitpoint + 1, rightarray, 0, workingmatrix.length - arrsplitpoint - 1);
+            System.arraycopy(workingmatrix, 0, leftarray, 0, arrsplitpoint + 1);
+            workingmatrix = null;
+
+            double errSum = 0;
+
+            if(rightarray.length != 0)
+                errSum = errSum + subtreeR.getTotalError(rightarray);
+            if(leftarray.length != 0)
+                errSum = errSum + subtreeL.getTotalError(leftarray);
+
+            return errSum;
+        }
+    }
+
+    public RegressionTree copy() {
+        if(isLeaf) {
+            return new RegressionTree(splitpoint, splitvar, value);
+        } else {
+            return new RegressionTree(splitpoint, splitvar, value, subtreeL.copy(), subtreeR.copy());
+        }
+    }
+
+    private int findSplitPoint() {
         int bestsplitpoint = 0;
         int bestsplitarrpoint = 0;
         int bestsplitvar = 0;
@@ -85,7 +204,6 @@ public class RegressionTree {
         double S_ofall = 0;
         for(int i = 0; i < N_ofall; i++)
             S_ofall = S_ofall + pointY(i);
-
 
         for(int x = 0; x < Config.datasetsize; x++) {
             sortby(x);
@@ -108,6 +226,7 @@ public class RegressionTree {
                             bestsplitarrpoint = i;
                             bestsplitvar = x;
                         }
+                        break;
                     }
                 }
             } else {

@@ -17,7 +17,7 @@ public class Webcrawler
         String[] k_topical = {"programming", "java", "oracle"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 20;
+        int crawlNumber = 200;
 
 
         Config.setSeedLinks(seedLinks);
@@ -79,6 +79,7 @@ public class Webcrawler
                 Config.core.reloadModel();
                 Config.lQueue.updatePriorities();
                 current.parseLinks();
+
             }
             else
             {

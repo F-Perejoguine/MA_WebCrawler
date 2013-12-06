@@ -36,16 +36,20 @@ public class Queue {
     }
 
     private int calculateMaxSize() {
-        final double FACTOR_ERRORRANGE = 2.0;
-        double flinksize = (double)Config.flinks.size();
-        double totalcrawled = (double)Config.core.getCollectionTotal();
-        double crawlnumber = (double)Config.getCrawlNumber();
-        int result = (int)(Config.FACTOR_RESERVE * crawlnumber);
+        if(Config.stopCondition == 0) {
+            final double FACTOR_ERRORRANGE = 2.0;
+            double flinksize = (double)Config.flinks.size();
+            double totalcrawled = (double)Config.core.getCollectionTotal();
+            double crawlnumber = (double)Config.stopParameter;
+            int result = (int)(Config.FACTOR_RESERVE * crawlnumber);
 
-        if (totalcrawled != 0) {
-            result = (int)Math.round(((FACTOR_ERRORRANGE * flinksize + totalcrawled) / totalcrawled) * (crawlnumber - totalcrawled));
+            if (totalcrawled != 0) {
+                result = (int)Math.round(((FACTOR_ERRORRANGE * flinksize + totalcrawled) / totalcrawled) * (crawlnumber - totalcrawled));
+            }
+            return result;
+        } else {
+            return 1000;
         }
-        return result;
     }
 
     public void add(Link element) {

@@ -54,26 +54,18 @@ public class Core {
         return collection.size();
     }
 
-    public void reloadModel() {
+    public void reloadModel(RunningUpdate regularUpdate) {
         long ctime = System.currentTimeMillis();
 
         MatrixSet root = createRootMatrix();
-        System.out.println("Training set: " + root.trMatrix.length + "   Validation set: " + root.valMatrix.length);
         treeRoot = new RegressionTree(root.trMatrix);
 
-
-        double f_time = Math.round((double)(System.currentTimeMillis() - ctime)) / 1000;
-
-        int leaves = treeRoot.getLeaves();
-        int nodes = leaves - 1;
-
-        System.out.println("RegressionTree model created in " + f_time + " second with " + nodes + " nodes and " + leaves + " leaves.");
-
-
+        regularUpdate.treeleaves = treeRoot.getLeaves();
+        regularUpdate.treetime = (double)Math.round((double)(System.currentTimeMillis() - ctime)) / 1000.0;
         ctime = System.currentTimeMillis();
-        double leasterror = -1;
 
-        if(root.valMatrix.length > 5) {
+        double leasterror = 0;
+        if(Config.prune && root.valMatrix.length > 5) {
             RegressionTree workingtree = treeRoot;
             RegressionTree besttree = workingtree;
             leasterror = workingtree.getTotalError(root.valMatrix);
@@ -95,12 +87,12 @@ public class Core {
             treeRoot = besttree;
         }
 
-        leaves = treeRoot.getLeaves();
-        nodes = leaves - 1;
-
-
-        double p_time = Math.round((double)(System.currentTimeMillis() - ctime)) / 1000;
-        System.out.println("Pruned to " + nodes + " nodes, and " + leaves + " leaves in " + p_time + " seconds. Total Error of " + leasterror);
+        regularUpdate.trdata = root.trMatrix.length;
+        regularUpdate.valdata = root.valMatrix.length;
+        regularUpdate.prunedleaves = treeRoot.getLeaves();
+        regularUpdate.prunedtime = (double)Math.round((double)(System.currentTimeMillis() - ctime)) / 1000.0;
+        regularUpdate.totaltreerror = leasterror;
+        regularUpdate.leaferror = (leasterror / (double)root.valMatrix.length);
     }
 
     public MatrixSet createRootMatrix() {

@@ -13,11 +13,12 @@ public class Webcrawler
 
     public static void main(String[] args)
     {
+        /*/
         String[] seedLinks = {"http://de.wikipedia.org/wiki/Java_Virtual_Machine"};
         String[] k_topical = {"programming", "java", "oracle"};
         String[] k_abstract = {};
         String[] k_specific = {};
-        int crawlNumber = 200;
+        int crawlNumber = 10;
 
 
         Config.setSeedLinks(seedLinks);
@@ -26,27 +27,21 @@ public class Webcrawler
         Config.core = new Core();
         Config.lQueue = new Queue(Config.getSeedLinks());
         Config.initializeLogger();
-
-
-        Config.logger.log(Level.INFO, "Starting Webcrawl for " + crawlNumber + " pages.");
+/*/
+/*/
+        Config.logger.log(Level.INFO, "Starting Webcrawl for " + Config.crawlNumber + " pages.");
         long ctime = System.currentTimeMillis();
         double ratingsum = 0;
 
-        while(Config.core.getCollectionTotal() < crawlNumber && Config.lQueue.size() != 0)
-        {
-            // Get current size of heap in bytes
-            long heapSize = Runtime.getRuntime().totalMemory();
+        boolean conditionnotmet = false;
 
-            // Get maximum size of heap in bytes. The heap cannot grow beyond this size.// Any attempt will result in an OutOfMemoryException.
-            long heapMaxSize = Runtime.getRuntime().maxMemory();
-
-            // Get amount of free memory within the heap in bytes. This size will increase // after garbage collection and decrease as new objects are created.
-            long heapFreeSize = Runtime.getRuntime().freeMemory();
-
+        do {
 
             Link workinglink = Config.lQueue.get();
 
             String workingURL = workinglink.url;
+
+            System.out.println("Queue size: " + Config.lQueue.size() + " parsing page Nr. " + (Config.core.getCollectionTotal() + 1) + ":  " + workingURL);
             boolean parsesuccess = true;
             Document doc = null;
             String domain = "";
@@ -54,20 +49,17 @@ public class Webcrawler
                 domain = new URI(workingURL).getHost();
             } catch(Exception e) {}
 
-            System.out.println(heapMaxSize + " max, " + heapSize + " current, " + heapFreeSize + " free    parsing page Nr. " + Config.core.getCollectionTotal() + ":   " + workingURL);
-            try
-            {
+            try {
                 doc = Jsoup.connect(workingURL).get();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Config.logger.log(Level.WARNING, e.getMessage() +  " parsing " + workingURL);
                 parsesuccess = false;
             }
+
             if (doc == null) parsesuccess = false;
 
-            if(parsesuccess)
-            {
+            if(parsesuccess) {
                 //DOMtoFile(doc);
                 Website current = new Website(doc, workingURL);
                 workinglink.rating = current.getRating();
@@ -80,18 +72,31 @@ public class Webcrawler
                 Config.lQueue.updatePriorities();
                 current.parseLinks();
 
-            }
-            else
-            {
+            } else {
                 Config.flinks.add(workingURL);
             }
-        }
-
-            Config.core.reloadModel();
 
 
+            switch (Config.stopCondition) {
+                case 0:
+                    conditionnotmet = Config.core.getCollectionTotal() < Config.stopParameter;
+                    break;
+                case 1:
+                    double time = (double)(System.currentTimeMillis() - ctime)/1000;
+                    conditionnotmet = time < (double)(Config.stopParameter * 60);
+                    break;
+                case 2:
+                    conditionnotmet = true;
+                    break;
+            }
+
+        } while(conditionnotmet);
+/*/
+/*/
         double f_time = (double)(System.currentTimeMillis() - ctime)/1000;
-        if(Config.core.getCollectionTotal() == crawlNumber)
+        Config.logger.log(Level.INFO, "Process finished with " + Config.core.getCollectionTotal() + " pages parsed in " + f_time + " seconds: Desired number of crawls reached.");
+
+        if(Config.core.getCollectionTotal() == Config.crawlNumber)
         {
             Config.logger.log(Level.INFO, "Process finished with " + Config.core.getCollectionTotal() + " pages parsed in " + f_time + " seconds: Desired number of crawls reached.");
         }
@@ -100,7 +105,7 @@ public class Webcrawler
         {
             Config.logger.log(Level.INFO, "Process finished with " + Config.core.getCollectionTotal() + " pages parsed in " + f_time + " seconds: Not enough links to proceed.");
         }
-
+/*/
         boolean successful = false;
 
 

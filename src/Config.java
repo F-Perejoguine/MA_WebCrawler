@@ -17,14 +17,23 @@ public class Config {
     private static String[] k_topical;
     private static String[] k_abstract;
     private static String[] k_specific;
-    private static int crawlNumber;
-    static final double FACTOR_RESERVE = 2.0;
-    static final int datasetsize = 5;
-    private static Level loglevel = Level.FINE;
-    public static Logger logger = Logger.getLogger("MAIN_LOGGER");
+    public static Level loglevel;
+    public static int stopCondition;
+    public static int stopParameter;
+    public static boolean onlyseeds;
+    public static int domainmax;
+    public static double updatemultiplier;
+    public static boolean prune;
+
+    public static int crawlNumber;
+
     public static Queue lQueue;
     public static Core core;
     public static List<String> flinks = new ArrayList<String>();
+
+    public static Logger logger = Logger.getLogger("MAIN_LOGGER");
+    static final double FACTOR_RESERVE = 2.0;
+    static final int datasetsize = 5;
 
     private Config() {}
 
@@ -59,10 +68,6 @@ public class Config {
         return seedLinks;
     }
 
-    public static int getCrawlNumber() {
-        return crawlNumber;
-    }
-
     public static String[] getTopical() {
         return k_topical;
     }
@@ -73,9 +78,5 @@ public class Config {
 
     public static String[] getSpecific() {
         return k_specific;
-    }
-
-    public static void setCrawlNumber(int number) {
-        crawlNumber = number;
     }
 }

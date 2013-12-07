@@ -103,7 +103,8 @@ public class WebcrawlerStart {
 
         Config.setSeedLinks(seedLinksTextArea.getText().split("\\r?\\n"));
         Config.setKeywords(kw_t, null, null);
-        Config.crawlNumber = Integer.parseInt(stopParametertxt.getText().trim());
+
+        if(condition != 2) Config.crawlNumber = Integer.parseInt(stopParametertxt.getText().trim());
         Config.stopCondition = condition;
         Config.stopParameter = Integer.parseInt(stopParametertxt.getText().trim());
         if(maxDomainchk.isSelected()) Config.domainmax = Integer.parseInt(maxDomains.getText().trim());

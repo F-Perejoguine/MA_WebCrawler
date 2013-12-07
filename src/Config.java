@@ -13,8 +13,8 @@ import java.util.logging.SimpleFormatter;
 
 public class Config {
 
-    private static String[] seedLinks;
-    private static String[] k_topical;
+    public static String[] seedLinks;
+    public static String[] k_topical;
     private static String[] k_abstract;
     private static String[] k_specific;
     public static Level loglevel;
@@ -70,13 +70,5 @@ public class Config {
 
     public static String[] getTopical() {
         return k_topical;
-    }
-
-    public static String[] getAbstract() {
-        return k_abstract;
-    }
-
-    public static String[] getSpecific() {
-        return k_specific;
     }
 }

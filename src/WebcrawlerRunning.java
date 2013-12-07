@@ -16,6 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
@@ -48,7 +49,16 @@ public class WebcrawlerRunning {
     private JLabel leafError_lbl;
     private JLabel treeLife_lbl;
     private JLabel avgerror_lbl;
+    private JLabel seedlinks_lbl;
+    private JLabel keywords_lbl;
+    private JLabel stopcondition_lbl;
+    private JLabel stopparameter_lbl;
+    private JProgressBar progressBar;
+    private JLabel progress_lbl;
     private RunningUpdate current;
+    private boolean stopped = false;
+    private int stopCondition;
+    private long c_time;
 
     SwingWorker<Void, RunningUpdate> crawler;
 
@@ -58,19 +68,56 @@ public class WebcrawlerRunning {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+        c_time = System.currentTimeMillis();
 
+        stopCondition = Config.stopCondition;
+        seedlinks_lbl.setText(Config.seedLinks.length + " seed URL's");
+        String keywords = Config.k_topical[0];
+        int n = 0;
+        for(String word : Config.k_topical) {
+            n++;
+            if(n != 1) keywords = keywords + ", " + word;
+        }
+        keywords_lbl.setText(keywords);
+        switch(Config.stopCondition) {
+            case 0:
+                stopcondition_lbl.setText("Until following amount of pages has been parsed:");
+                progressBar.setMinimum(0);
+                progressBar.setMaximum(Config.stopParameter);
+                progressBar.setStringPainted(true);
+                break;
+            case 1:
+                stopcondition_lbl.setText("Until following amount of time has passed:");
+                progressBar.setMinimum(0);
+                progressBar.setMaximum(Config.stopParameter * 60);
+                progressBar.setStringPainted(true);
+                break;
+            case 2:
+                stopcondition_lbl.setText("Until run out of memory.");
+                progressBar.setIndeterminate(true);
+                break;
+        }
+        stopparameter_lbl.setText(Integer.toString(Config.stopParameter));
 
         Timer timer = new Timer(1000, new ActionListener() {
             int seconds = 0;
             int minutes = 0;
 
             public void actionPerformed(ActionEvent e) {
-                if(seconds == 59) {
-                    seconds = 0;
-                    minutes++;
-                } else seconds++;
+                if(!stopped) {
+                    String zero = "";
+                    if(seconds == 59) {
+                        seconds = 0;
+                        minutes++;
+                    } else seconds++;
 
-                time_lbl.setText(minutes + ":" + seconds);
+                    if(seconds < 10) zero = Integer.toString(0);
+                    time_lbl.setText(minutes + ":" + zero + seconds);
+                }
+
+                if(stopCondition == 1) {
+                    progressBar.setValue(progressBar.getValue() + 1);
+                }
             }
         });
 
@@ -96,7 +143,7 @@ public class WebcrawlerRunning {
                 long ctime = System.currentTimeMillis();
                 double ratingsum = 0;
                 int trees = 0;
-                double error = 0;
+                double error = 0.0;
                 boolean conditionnotmet = false;
                 int treelife = 0;
 
@@ -130,11 +177,10 @@ public class WebcrawlerRunning {
                     if (doc == null) parsesuccess = false;
 
                     if(parsesuccess) {
-                        //DOMtoFile(doc);
-                        Website current = new Website(doc, workingURL);
                         double prediction = workinglink.rating;
+                        Website current = new Website(doc, workingURL);
                         workinglink.rating = current.getRating();
-                        error = error + Math.abs(prediction - workinglink.rating);
+                        if(Math.abs(prediction - workinglink.rating) > 0) error = error + Math.abs(prediction - workinglink.rating);
 
                         if(treelife == 0) {
                             Config.core.reloadModel(regularUpdate);
@@ -162,7 +208,7 @@ public class WebcrawlerRunning {
                     regularUpdate.domains = 0;
 
                     regularUpdate.treenumber = trees;
-                    regularUpdate.avgerror = error / (double)Config.core.getCollectionTotal();
+                    regularUpdate.avgerror = (double)Math.round(100.0 * error / (double)Config.core.getCollectionTotal()) / 100.0;
 
 
                     switch (Config.stopCondition) {
@@ -177,8 +223,16 @@ public class WebcrawlerRunning {
                             conditionnotmet = true;
                             break;
                     }
+
+                    if(isCancelled()) {
+                        publish(new RunningUpdate("Process finished with " + Config.core.getCollectionTotal() + " pages parsed: Process aborted by user."));
+                        publish(regularUpdate);
+                        stopped = true;
+                        return null;
+                    }
                 } while(conditionnotmet);
 
+                stopped = true;
                 publish(new RunningUpdate("Process finished with " + Config.core.getCollectionTotal() + " pages parsed: Stopping condition met."));
                 publish(regularUpdate);
 
@@ -193,10 +247,10 @@ public class WebcrawlerRunning {
                 try {
                     get();
                     System.out.println("normal");
-                } catch(InterruptedException e) {
+                } catch(CancellationException e) {
                     System.out.println("interrupted");
                 } catch(Exception e) {
-
+                    System.out.println("other exception");
                 }
             }
 
@@ -215,16 +269,18 @@ public class WebcrawlerRunning {
 
                         // Get maximum size of heap in bytes. The heap cannot grow beyond this size.// Any attempt will result in an OutOfMemoryException.
                         long heapMaxSize = Runtime.getRuntime().maxMemory();
-
                         currentMemory_lbl.setText(((double)Math.round((double)heapSize * 10000.0 / (double)heapMaxSize)/100.0) + " %");
-
+                        switch(stopCondition) {
+                            case 0:
+                                progressBar.setValue(update.totalpages);
+                                break;
+                        }
 
                         queueSize_lbl.setText(Integer.toString(update.queuesize));
                         pagesParsed_lbl.setText(Integer.toString(update.totalpages));
                         parsingErrors.setText(Integer.toString(update.totalerrors));
                         averageRating_lbl.setText(Double.toString(Math.round(update.averagerating * 100) / 100));
                         avgPageTime_lbl.setText(Double.toString(update.averagetime));
-                        reach_lbl.setText(Integer.toString(update.reach));
                         domains_lbl.setText(Integer.toString(update.domains));
                         tree_lbl.setText("Regression Tree Nr. " + update.treenumber + " created in " + update.treetime + " seconds with " + update.treeleaves + " leaves.");
                         pruned_lbl.setText("Pruned in " + update.prunedtime + " seconds, to " + update.prunedleaves + " leaves.");
@@ -241,9 +297,5 @@ public class WebcrawlerRunning {
         };
 
         crawler.execute();
-    }
-
-    private void Stop() {
-        crawler.cancel(true);
     }
 }

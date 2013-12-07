@@ -22,8 +22,6 @@ public class Website {
         website = doc;
         sourceURL = sURL;
         k_topical = Config.getTopical();
-        k_abstract = Config.getAbstract();
-        k_specific = Config.getSpecific();
         textcontent = new ArrayList<String>();
 
         try {
